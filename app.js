@@ -57,20 +57,20 @@ function render(){if(!USER)return;const sy=$(".body")?$(".body").scrollTop:0;
 function bar(v,max,a){return`<span class="bt ${a?"a":""}"><i style="width:${max?Math.max(2,Math.round(v*100/max)):0}%"></i></span>`}
 function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard);
- return`<section class="hero" aria-label="Ventes du jour"><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
- <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""}</span><span>${j.tickets.filter(t=>!t.annule).length} ticket(s)</span></div></section>
- <div class="k2"><div class="card"><div class="l">Encaissé</div><div class="v">${fmtN(j.encaisse)}</div></div>
- <div class="card"><div class="l">Dépenses</div><div class="v ${j.depenses?"red":""}">${j.depenses?"−":""}${fmtN(j.depenses)}</div></div>
- <div class="card"><div class="l">À crédit</div><div class="v">${fmtN(j.credit)}</div></div>
- <div class="card"><div class="l">Clôture</div>${j.cloture?`<div class="v" style="font-size:16px">${j.cloture.ecart?`<span class="red">Écart ${fmtN(j.cloture.ecart)}</span>`:`<span style="color:var(--good)">Caisse juste</span>`}</div><div class="s">par ${esc(j.cloture.par)}</div>`:`<div class="v amb" style="font-size:16px">Pas encore faite</div>`}</div>
- <div class="card"><div class="l">Espèces attendues</div><div class="v">${fmtN(j.especes)}</div></div>
- <div class="card"><div class="l">Marge estimée</div><div class="v">${j.marge==null?"—":fmtN(j.marge)}</div>${j.couv?`<div class="s">coût connu ${j.couv} %</div>`:""}</div></div>
+ return`<button class="hero tap" data-sh="ventes"><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
+ <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""}</span><span>${j.tickets.filter(t=>!t.annule).length} ticket(s)</span></div></button>
+ <div class="k2"><button class="card tap" data-sh="encaisse"><div class="l">Encaissé</div><div class="v">${fmtN(j.encaisse)}</div></button>
+ <button class="card tap" data-sh="depenses"><div class="l">Dépenses</div><div class="v ${j.depenses?"red":""}">${j.depenses?"−":""}${fmtN(j.depenses)}</div></button>
+ <button class="card tap" data-sh="credit"><div class="l">À crédit</div><div class="v">${fmtN(j.credit)}</div></button>
+ <button class="card tap" data-sh="cloture"><div class="l">Clôture</div>${j.cloture?`<div class="v" style="font-size:16px">${j.cloture.ecart?`<span class="red">Écart ${fmtN(j.cloture.ecart)}</span>`:`<span style="color:var(--good)">Caisse juste</span>`}</div><div class="s">par ${esc(j.cloture.par)}</div>`:`<div class="v amb" style="font-size:16px">Pas encore faite</div>`}</button>
+ <button class="card tap" data-sh="soldes"><div class="l">Espèces attendues</div><div class="v">${fmtN(j.especes)}</div></button>
+ <button class="card tap" data-sh="marge"><div class="l">Marge estimée</div><div class="v">${j.marge==null?"—":fmtN(j.marge)}</div>${j.couv?`<div class="s">coût connu ${j.couv} %</div>`:""}</button></div>
  ${nV?`<button class="wlink" data-go="valider">${ic(WARN)}<span class="grow">${nV} vente${nV>1?"s":""} sous le minimum à valider</span>${ic(CHEV)}</button>`:""}
  ${E.refusees?`<div class="wlink r">${ic(WARN)}<span class="grow">${E.refusees} vente(s) refusée(s)<small>pas encore régularisée(s) au magasin</small></span></div>`:""}
  ${late.length?`<button class="wlink r" data-go="dettes">${ic(WARN)}<span class="grow">${late.length} dette${late.length>1?"s":""} en retard<small>${esc(late.slice(0,2).map(x=>x.tiers).join(", "))}</small></span>${ic(CHEV)}</button>`:""}
  ${E.stock.faible.length?`<button class="wlink" data-go="plus">${ic(WARN)}<span class="grow">Stock faible : ${E.stock.faible.length} article(s)<small>${esc(E.stock.faible.slice(0,2).map(i=>i.nom).join(", "))}</small></span>${ic(CHEV)}</button>`:""}
- <h2>Tickets du jour</h2><section class="card list">${j.tickets.map(t=>`<div class="li ${t.annule?"strike":""}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small></span><b>${fmtN(t.tot)}</b></div>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
- <h2>Dépenses du jour</h2><section class="card list">${j.depensesListe.map(o=>`<div class="li"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${o.h} · ${esc(o.cat)}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="red">−${fmtN(o.m)}</b></div>`).join("")||`<p class="mute pad">Aucune dépense.</p>`}</section>`}
+ <h2>Tickets du jour</h2><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small></span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
+ <h2>Dépenses du jour</h2><section class="card list">${j.depensesListe.map(o=>`<button class="li tap" data-sh="depenses"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${o.h} · ${esc(o.cat)}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="red">−${fmtN(o.m)}</b></button>`).join("")||`<p class="mute pad">Aucune dépense.</p>`}</section>`}
 function vValider(){const L=E.validations;if(!L.length)return`<div class="empty">Aucune vente à valider. Tout est en ordre.</div>`;
  return L.map(v=>{const prix=v.lignes.reduce((s,l)=>s+l.prix,0),mn=v.lignes.reduce((s,l)=>s+l.minimum,0),ct=v.lignes.reduce((s,l)=>s+l.cout,0),sent=SENT[v.cle];
   return`<article class="card vc"><div class="top"><div><h3>${esc(v.lignes.map(l=>l.lib).join(" + "))}</h3><div class="mute sm">${v.ticket?"Ticket n° "+v.ticket+" · ":""}${fd(v.date)} · ${esc(v.par)}</div></div>${tag(v.vente)}</div>
@@ -89,10 +89,10 @@ function vDettes(){const all=E.dettes.liste,late=all.filter(x=>x.retard),L=DF===
  <div class="amt"><b>${fmtN(x.reste)}</b><div class="sm ${x.retard?"red":dueSoon(x)?"amb":"mute"}" style="font-weight:700">${x.ech?(x.retard?"en retard depuis le ":"échéance le ")+fd(x.ech):"sans échéance"}</div></div></div>
  <button class="b2 ghost" data-rel="${all.indexOf(x)}">${ic(MSG)}Relancer (copier le message)</button></article>`).join("")||`<div class="empty">Aucune dette ici.</div>`}`}
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
- return`<section class="hero g4" aria-label="Résultat du mois"><div><div class="l">Chiffre d'affaires</div><div class="v">${fmtN(m.ca)}</div><div class="s">${m.motos} moto${m.motos>1?"s":""}${m.objMotos?" / objectif "+m.objMotos:""}</div></div>
- <div><div class="l">Marge</div><div class="v">${m.marge==null?"—":fmtN(m.marge)}</div>${m.couv?`<div class="s">coût connu pour ${m.couv} % des ventes</div>`:""}</div>
- <div><div class="l">Charges</div><div class="v">${fmtN(m.charges)}</div></div>
- <div><div class="l">Résultat</div><div class="v">${m.marge==null?"—":fmtN(m.marge-m.charges)}</div></div></section>
+ return`<section class="hero g4" aria-label="Résultat du mois"><button class="tap in" data-sh="mca"><div class="l">Chiffre d'affaires</div><div class="v">${fmtN(m.ca)}</div><div class="s">${m.motos} moto${m.motos>1?"s":""}${m.objMotos?" / objectif "+m.objMotos:""}</div></button>
+ <button class="tap in" data-sh="mmarge"><div class="l">Marge</div><div class="v">${m.marge==null?"—":fmtN(m.marge)}</div>${m.couv?`<div class="s">coût connu pour ${m.couv} % des ventes</div>`:""}</button>
+ <button class="tap in" data-sh="mcharges"><div class="l">Charges</div><div class="v">${fmtN(m.charges)}</div></button>
+ <button class="tap in" data-sh="mres"><div class="l">Résultat</div><div class="v">${m.marge==null?"—":fmtN(m.marge-m.charges)}</div></button></section>
  ${m.objCa?`<section class="card"><div class="ct"><b>Objectif du mois</b><span class="sm mute">${Math.round(m.ca*100/m.objCa)} %</span></div><div class="prog"><i style="width:${Math.min(100,m.ca*100/m.objCa)}%"></i></div><div class="s">${fmtN(m.ca)} sur ${fmtN(m.objCa)} Ar</div></section>`:""}
  <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
@@ -112,9 +112,54 @@ function vPlus(){const dark=document.documentElement.dataset.theme!=="light";
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand("copy")}catch(x){}a.remove();return ok}}
 function setTheme(t){if(t==="light")document.documentElement.dataset.theme="light";else delete document.documentElement.dataset.theme;
  try{localStorage.setItem("dg_theme",t)}catch(e){}const m=$('meta[name="theme-color"]');if(m)m.content=t==="light"?"#f4f4f5":"#09090b";render()}
+/* ---------- panneaux de détail (clic sur une carte) ---------- */
+const X_ICON='<path d="M6 6l12 12M18 6 6 18"/>';
+function closeSheet(fromPop){const bg=$("#dsheet");if(!bg)return;bg.remove();if(!fromPop&&history.state&&history.state.sheet)history.back()}
+window.addEventListener("popstate",()=>closeSheet(true));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+function openSheet(title,html){closeSheet(true);const bg=document.createElement("div");bg.className="sheet-bg";bg.id="dsheet";
+ bg.innerHTML=`<div class="sheet big" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><h2 class="sh-t">${esc(title)}</h2><button class="x" id="shx" aria-label="Fermer">${ic(X_ICON)}</button></div><div class="sh-b">${html}</div></div>`;
+ document.body.appendChild(bg);bg.onclick=e=>{if(e.target===bg)closeSheet()};$("#shx").onclick=()=>closeSheet();
+ $$("[data-go]",bg).forEach(b=>b.onclick=()=>{closeSheet();TAB=b.dataset.go;render()});
+ try{history.pushState({sheet:1},"")}catch(e){}setTimeout(()=>{const x=$("#shx");if(x)x.focus()},30)}
+const row=(a,b,c,cls)=>`<div class="li"><span class="grow"><b>${a}</b>${c?`<small class="mute">${c}</small>`:""}</span><b class="${cls||""}">${b}</b></div>`;
+const tot=(l,v,cls)=>`<div class="sh-tot"><span>${l}</span><b class="${cls||""}">${v}</b></div>`;
+function tkTags(t){return[t.annule?tag("annulé","r"):"",t.credit?tag("crédit","w"):"",t.acompte?tag("acompte","w"):"",t.sousMin?tag("sous le minimum","r"):""].join(" ")}
+function tkRow(t,i){return`<button class="li tap" data-tk="${i}"><span class="grow"><b class="${t.annule?"strike":""}">${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}${t.modes?" · "+esc(t.modes):""}</small>${tkTags(t)?`<span class="tgs">${tkTags(t)}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`}
+function groupSum(A,k,v){const o={};A.forEach(x=>{const kk=k(x)||"—";o[kk]=(o[kk]||0)+v(x)});return Object.entries(o).sort((a,b)=>b[1]-a[1])}
+const SHEETS={
+ ventes(){const j=E.jour,T=j.tickets;return[`Ventes du jour`,tot("Total des ventes",fmtN(j.ventes)+" Ar")+`<p class="s" style="margin:4px 0 8px">${j.motos} moto${j.motos>1?"s":""} · ${T.filter(t=>!t.annule).length} ticket(s). Touchez un ticket pour le détail.</p><div class="card list">${T.map(tkRow).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</div>`]},
+ encaisse(){const j=E.jour,P=j.tickets.filter(t=>!t.annule&&!t.credit),G=groupSum(P,t=>t.modes,t=>t.tot);
+  return["Encaissé aujourd'hui",tot("Total encaissé",fmtN(j.encaisse)+" Ar")+`<p class="s" style="margin:4px 0 8px">Comprend les ventes payées, les paiements de dettes et les autres entrées (hors transferts).</p>
+  <h3 class="sh-s">Ventes payées, par mode</h3><div class="card list">${G.map(([m,v])=>row(esc(m),fmtN(v))).join("")||`<p class="mute pad">Aucune vente payée.</p>`}</div>
+  <h3 class="sh-s">Détail</h3><div class="card list">${P.map(t=>tkRow(t,j.tickets.indexOf(t))).join("")||`<p class="mute pad">—</p>`}</div>`]},
+ depenses(){const j=E.jour,L=j.depensesListe,G=groupSum(L,o=>o.cat,o=>o.m);
+  return["Dépenses du jour",tot("Total",(j.depenses?"−":"")+fmtN(j.depenses)+" Ar","red")+`<h3 class="sh-s">Par catégorie</h3><div class="card list">${G.map(([c,v])=>row(esc(c),"−"+fmtN(v),"","red")).join("")||`<p class="mute pad">Aucune dépense.</p>`}</div>
+  <h3 class="sh-s">Détail</h3><div class="card list">${L.map(o=>row(esc(o.lib),"−"+fmtN(o.m),o.h+" · "+esc(o.cat)+(o.tiers?" · "+esc(o.tiers):""),"red")).join("")||`<p class="mute pad">—</p>`}</div>`]},
+ credit(){const j=E.jour,L=j.tickets.filter(t=>!t.annule&&(t.credit||t.acompte));
+  return["Ventes à crédit aujourd'hui",tot("Vendu à crédit",fmtN(j.credit)+" Ar")+`<div class="card list" style="margin-top:8px">${L.map(t=>tkRow(t,j.tickets.indexOf(t))).join("")||`<p class="mute pad">Aucune vente à crédit aujourd'hui.</p>`}</div>
+  <button class="b2 ghost full" data-go="dettes">Voir toutes les dettes clients (${fmtN(E.dettes.total)} Ar)</button>`]},
+ cloture(){const c=E.jour.cloture;if(!c)return["Clôture du jour",`<div class="note">La clôture n'est pas encore faite. Elle se fait sur le PC de la caisse (touche F9) : comptage du tiroir, puis MVola, Orange Money et banques.</div>`+tot("Espèces attendues dans le tiroir",fmtN(E.jour.especes)+" Ar")];
+  return["Clôture du jour",`<div class="card list">${row("Faite par",esc(c.par))}${row("Heure",new Date(c.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}))}${row("Espèces attendues",fmtN(c.attendu))}${row("Compté",c.compte==null?"—":fmtN(c.compte))}${row("Écart",fmtN(c.ecart),"",c.ecart?"red":"")}</div>${c.comment?`<div class="note" style="margin-top:10px"><b>Commentaire :</b> « ${esc(c.comment)} »</div>`:""}`]},
+ soldes(){const S=Object.entries(E.soldes);return["Soldes par mode",tot("Espèces attendues",fmtN(E.jour.especes)+" Ar")+`<div class="card list" style="margin-top:8px">${S.map(([k,v])=>row(esc(k),fmtN(v))).join("")}</div>${tot("Total tous modes",fmtN(S.reduce((s,x)=>s+x[1],0))+" Ar")}<p class="s">Les soldes sont justes après chaque clôture où le gérant a corrigé les montants comptés.</p>`]},
+ marge(){const j=E.jour;return["Marge du jour",j.marge==null?`<div class="note">Marge inconnue : aucun coût d'achat n'est renseigné pour les articles vendus aujourd'hui (page Articles ou Arrivages sur le PC).</div>`:
+  `<div class="card list">${row("Ventes",fmtN(j.ventes))}${row("Marge estimée",fmtN(j.marge))}${row("Taux de marge",j.ventes?Math.round(j.marge*100/j.ventes)+" %":"—")}${row("Coût d'achat connu pour",j.couv+" % des ventes")}</div><p class="s">Si le coût d'un article n'est pas connu, sa marge n'est pas comptée : la marge réelle peut être un peu différente.</p>`]},
+ mca(){const m=E.mois;return["Chiffre d'affaires du mois",tot("Total",fmtN(m.ca)+" Ar")+`<p class="s" style="margin:4px 0 8px">${m.motos} moto${m.motos>1?"s":""} vendue${m.motos>1?"s":""}${m.objCa?" · objectif "+fmtN(m.objCa)+" Ar ("+Math.round(m.ca*100/m.objCa)+" %)":""}</p>
+  <h3 class="sh-s">Par jour</h3><div class="card list">${m.parJour.slice().reverse().map(([d,v])=>row(d+"/"+m.m.slice(5,7),fmtN(v))).join("")||`<p class="mute pad">—</p>`}</div>
+  <h3 class="sh-s">Par catégorie</h3><div class="card list">${m.parCat.map(([c,v])=>row(esc(c),fmtN(v))).join("")}</div>`]},
+ mmarge(){const m=E.mois;return["Marge du mois",m.marge==null?`<div class="note">Marge inconnue : renseignez les coûts d'achat sur le PC.</div>`:`<div class="card list">${row("Chiffre d'affaires",fmtN(m.ca))}${row("Marge estimée",fmtN(m.marge))}${row("Taux de marge",m.ca?Math.round(m.marge*100/m.ca)+" %":"—")}${row("Coût d'achat connu pour",m.couv+" % des ventes")}</div>`]},
+ mcharges(){const m=E.mois;return["Charges du mois",tot("Charges de la boutique",fmtN(m.charges)+" Ar")+`<h3 class="sh-s">Sorties par catégorie</h3><div class="card list">${m.depCat.map(([c,v])=>row(esc(c),fmtN(v),/Retraits des associés|camion/i.test(c)?"hors charges":"")).join("")||`<p class="mute pad">—</p>`}</div>
+  <p class="s">Les retraits des associés (${fmtN(m.retraits)}) et les dépenses du camion à refacturer (${fmtN(m.camion)}) ne comptent pas dans les charges.</p>`]},
+ mres(){const m=E.mois;return["Résultat du mois",m.marge==null?`<div class="note">Résultat inconnu tant que les coûts d'achat ne sont pas renseignés.</div>`:`<div class="card list">${row("Marge estimée",fmtN(m.marge))}${row("− Charges",fmtN(m.charges),"","red")}${row("= Résultat",fmtN(m.marge-m.charges))}</div><p class="s">Hors retraits des associés (${fmtN(m.retraits)}) et camion (${fmtN(m.camion)}).</p>`]}
+};
+function showSheet(k){const f=SHEETS[k];if(!f||!E)return;const[t,h]=f();openSheet(t,h);bindSheetTickets()}
+function showTicket(i){const t=E.jour.tickets[+i];if(!t)return;
+ openSheet(t.n?"Ticket n° "+t.n:"Ticket",`${tot("Total",fmtN(t.tot)+" Ar")}<div class="card list" style="margin-top:8px">${row("Articles",`<span style="font-weight:600;text-align:right;display:block;max-width:220px">${esc(t.lib)}</span>`)}${row("Heure",t.h)}${row("Client",esc(t.tiers||"client comptoir"))}${row("Paiement",esc(t.modes||"—"))}${t.par?row("Caissier",esc(t.par)):""}</div>${tkTags(t)?`<p style="margin:10px 0 0">${tkTags(t)}</p>`:""}${t.sousMin?`<button class="b2 ghost full" data-go="valider">Voir les ventes à valider</button>`:""}`)}
+function bindSheetTickets(){$$("#dsheet [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk))}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
+ $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
  $$("[data-df]").forEach(b=>b.onclick=()=>{DF=b.dataset.df;render()});
  $$("[data-th]").forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
  $$("[data-rel]").forEach(b=>b.onclick=async()=>{const x=E.dettes.liste[+b.dataset.rel];if(!x)return;const t=relance(x);
