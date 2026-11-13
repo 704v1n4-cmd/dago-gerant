@@ -1,0 +1,1 @@
+window.DG_CONFIG={apiKey:"AIzaSyBablTJMPm-Hs_kHyLzo8PUMAAEb5xyD_U",authDomain:"dago-caisse.firebaseapp.com",projectId:"dago-caisse",storageBucket:"dago-caisse.firebasestorage.app",messagingSenderId:"645730497157",appId:"1:645730497157:web:e64fae4575bbd26b232fec"};
