@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.3 · 14/11";
+const APP_VERSION="2.4 · 14/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -88,6 +88,12 @@ function vDettes(){const all=E.dettes.liste,late=all.filter(x=>x.retard),L=DF===
  <div class="seg3" role="group" aria-label="Filtre">${[["tout","Toutes"],["retard","En retard"],["semaine","Cette semaine"]].map(([k,l])=>`<button class="${DF===k?"on":""}" data-df="${k}" aria-pressed="${DF===k}">${l}</button>`).join("")}</div>
  ${L.length?`<section class="card list" aria-label="Liste des dettes">${L.map(x=>`<div class="dr"><span class="av" aria-hidden="true">${esc(ini(x.tiers))}</span><div class="grow"><div class="dt"><b>${esc(x.tiers)}</b><b>${fmtN(x.reste)}</b></div><small class="mute el">${esc(x.lib)}</small><div>${x.ech?(x.retard?tag(daysLate(x)+" j de retard","r"):tag("Échéance le "+fd(x.ech),dueSoon(x)?"w":"")):tag("Sans échéance")}</div></div>
  <button class="ib" data-rel="${all.indexOf(x)}" aria-label="Relancer ${esc(x.tiers)}">${ic(MSG)}</button></div>`).join("")}</section><p class="s" style="text-align:center;margin:0">Le bouton bulle prépare le message de relance (WhatsApp, SMS…).</p>`:`<div class="empty">Aucune dette ici.</div>`}`}
+let MF="mois";
+function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><div class="ct"><b>Scooters vendus par modèle</b></div><div class="note">Ce graphique apparaîtra après la mise à jour de la caisse du PC (version 2.1).</div></section>`;
+ const L=(MF==="tout"?m.modelesTout:m.modeles)||[],mx=Math.max(1,...L.map(x=>x[1])),n=L.reduce((s,x)=>s+x[1],0);
+ return`<section class="card" aria-label="Scooters vendus par modèle"><div class="ct"><b>Scooters vendus par modèle</b><span class="sm mute">${n} moto${n>1?"s":""}</span></div>
+ <div class="seg3" role="group" aria-label="Période" style="margin:4px 0 12px">${[["mois","Ce mois"],["tout","Depuis le début"]].map(([k,l])=>`<button class="${MF===k?"on":""}" data-mf="${k}" aria-pressed="${MF===k}">${l}</button>`).join("")}</div>
+ ${L.map(([nom,q,v])=>`<div class="hb"><div class="t"><span>${esc(nom)}</span><b>${q}</b></div><span class="bt a mdl"><i style="width:${Math.max(3,Math.round(q*100/mx))}%"></i></span><div class="s" style="margin-top:3px">${fmtN(v)} Ar${q>1?" · moyenne "+fmtN(v/q):""}</div></div>`).join("")||`<p class="mute pad">Aucun scooter vendu sur cette période.</p>`}</section>`}
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
@@ -95,6 +101,7 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  ${m.objCa?`<section class="card"><div class="ct"><b>Objectif du mois</b><span class="sm mute">${Math.round(m.ca*100/m.objCa)} %</span></div><div class="prog"><i style="width:${Math.min(100,m.ca*100/m.objCa)}%"></i></div><div class="s">${fmtN(m.ca)} sur ${fmtN(m.objCa)} Ar</div></section>`:""}
  <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
+ ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>
  <section class="card"><div class="ct"><b>Plus grosses sorties</b></div>${hbars(m.depCat)||`<p class="mute pad">—</p>`}
  <div class="s" style="margin-top:10px">Retraits des associés ${fmtN(m.retraits)} · camion à refacturer ${fmtN(m.camion)} (hors charges)</div></section>
@@ -162,6 +169,7 @@ function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;rende
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
+ $$("[data-mf]").forEach(b=>b.onclick=()=>{MF=b.dataset.mf;render()});
  $$("[data-df]").forEach(b=>b.onclick=()=>{DF=b.dataset.df;render()});
  $$("[data-th]").forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
  $$("[data-rel]").forEach(b=>b.onclick=async()=>{const x=E.dettes.liste[+b.dataset.rel];if(!x)return;const t=relance(x);
