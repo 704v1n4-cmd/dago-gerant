@@ -164,6 +164,21 @@ html[data-theme=light] .hero:not(.g4) .spark i{background:rgba(255,255,255,.16)}
 html[data-theme=light] .hero:not(.g4) .spark i.on{background:#96ff1a}
 html[data-theme=light] .hero:not(.g4) .spark span{color:#bfe6a3}
 .hero .tag.g{background:#96ff1a;color:#083300}
+
+/* v3.2 : chiffres clés en grille, courbe du mois, mode sombre Dago */
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kb{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px;min-height:84px}
+.kb .l{font-size:13px;font-weight:600;color:var(--mute)}.kb b{font:800 22px/1.2 Brico,Onest,sans-serif;letter-spacing:-.01em}.kb small{font-size:11.5px;color:var(--mute)}
+.kb:active{transform:scale(.98)}.kb b.red{color:var(--red)}.kb b.amb{color:var(--amber)}
+.cum{width:100%;height:auto;display:block;margin-top:8px;overflow:visible}
+.cum .cg{stroke:var(--mute);stroke-dasharray:3 4;stroke-width:1}.cum .cx{stroke:var(--line);stroke-width:1}
+.cum .ct2{fill:none;stroke:var(--mute);stroke-width:1.5;stroke-dasharray:5 4}
+.cum .cl{fill:none;stroke:var(--chart);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.cum .ca2{fill:var(--chart);opacity:.12}
+.cum .cd{fill:var(--chart);stroke:var(--card);stroke-width:2}.cum .ctx{font:600 10.5px Onest,sans-serif;fill:var(--mute)}
+.leg2{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:6px}.leg2 i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.leg2 .la{background:var(--chart)}.leg2 .lt{background:var(--mute)}.okc{color:var(--good);font-weight:700}.amb{font-weight:700}
+html:not([data-theme=light]){--bg:#04110a;--card:#0a1c10;--card2:#112a18;--line:#1b3a22;--mute:#93ad98;--sub:#c4d8c7;--ink:#eef6ef;--field:#04110a;--barm:#1d3d24;--hero:#0d3a06;--onhero:#fff;--goodbg:#0f2f17;--accent:#96ff1a;--chart:#96ff1a;--aline:#96ff1a;--navon:#96ff1a}
+.hero .v{white-space:nowrap;font-size:clamp(26px,8.6vw,38px)}.hero .ht>*:first-child{min-width:0}.hero .tag{flex:none}.hero .v small{font-size:.45em}
 </style>
 </head>
 <body>

@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.1 · 16/11";
+const APP_VERSION="3.2 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -68,12 +68,14 @@ function bar(v,max,a){return`<span class="bt ${a?"a":""}"><i style="width:${max?
 function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
 function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const mx=Math.max(1,...P.map(x=>x[1]));
  return`<div class="spark" role="img" aria-label="Ventes des derniers jours">${P.map(([d,v],i)=>`<div><i class="${i===P.length-1?"on":""}" style="height:${Math.max(3,Math.round(v*44/mx))}px"></i><span>${d}</span></div>`).join("")}</div>`}
+const kbox=(k,l,v,cls,sub)=>`<button class="kb" data-sh="${k}"><span class="l">${l}</span><b class="${cls||""}">${v}</b>${sub?`<small>${sub}</small>`:""}</button>`;
 const lrow=(k,l,v,cls)=>`<button class="lr" data-sh="${k}"><span>${l}</span><b class="${cls||""}">${v}</b>${ic(CHEV)}</button>`;
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard),nA=(nV?1:0)+(E.refusees?1:0)+(late.length?1:0)+(E.stock.faible.length?1:0);
  return`<button class="card hero tap" data-sh="ventes"><div class="ht"><div><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
  <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule&&!t.ancienne).length} ticket(s)</span></div>${j.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(j.anciennes)} Ar</div>`:""}</div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
+ <section class="kg" aria-label="Chiffres clés">${kbox("encaisse","Encaissé",fmtN(j.encaisse))}${kbox("depenses","Dépenses",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}${kbox("marge","Marge estimée",j.marge==null?"—":fmtN(j.marge),"",j.couv&&j.couv<100?"coût connu "+j.couv+" %":"")}${kbox("credit","À crédit",fmtN(j.credit),j.credit?"amb":"")}</section>
  ${vObjJour()}
- <section class="card list" aria-label="Résumé">${lrow("encaisse","Encaissé",fmtN(j.encaisse))}${lrow("depenses","Dépenses",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}${lrow("credit","À crédit",fmtN(j.credit))}${lrow("soldes","Espèces attendues",fmtN(j.especes))}${lrow("marge","Marge estimée",j.marge==null?"—":fmtN(j.marge))}${lrow("cloture","Clôture",j.cloture?(j.cloture.ecart?"Écart "+fmtN(j.cloture.ecart):"Caisse juste"):"Pas encore faite",j.cloture?(j.cloture.ecart?"red":""):"amb")}</section>
+ <section class="card list" aria-label="Résumé">${lrow("soldes","Espèces attendues",fmtN(j.especes))}${lrow("cloture","Clôture",j.cloture?(j.cloture.ecart?"Écart "+fmtN(j.cloture.ecart):"Caisse juste"):"Pas encore faite",j.cloture?(j.cloture.ecart?"red":""):"amb")}</section>
  ${nA?`<div class="sec"><h2>À traiter</h2>${tag(nA,"r")}</div><section class="card list" aria-label="À traiter">
  ${nV?`<button class="ar" data-go="valider"><i class="ic a">${ic(WARN)}</i><span class="grow"><b>${nV} vente${nV>1?"s":""} sous le minimum</b><small>à accepter ou refuser</small></span>${ic(CHEV)}</button>`:""}
  ${E.refusees?`<div class="ar"><i class="ic r">${ic(WARN)}</i><span class="grow"><b>${E.refusees} vente(s) refusée(s)</b><small>pas encore régularisée(s) au magasin</small></span></div>`:""}
@@ -104,12 +106,25 @@ function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><d
  return`<section class="card" aria-label="Scooters vendus par modèle"><div class="ct"><b>Scooters vendus par modèle</b><span class="sm mute">${n} moto${n>1?"s":""}</span></div>
  <div class="seg3" role="group" aria-label="Période" style="margin:4px 0 12px">${[["mois","Ce mois"],["tout","Depuis le début"]].map(([k,l])=>`<button class="${MF===k?"on":""}" data-mf="${k}" aria-pressed="${MF===k}">${l}</button>`).join("")}</div>
  ${L.map(([nom,q,v])=>`<div class="hb"><div class="t"><span>${esc(nom)}</span><b>${q}</b></div><span class="bt a mdl"><i style="width:${Math.max(3,Math.round(q*100/mx))}%"></i></span><div class="s" style="margin-top:3px">${fmtN(v)} Ar${q>1?" · moyenne "+fmtN(v/q):""}</div></div>`).join("")||`<p class="mute pad">Aucun scooter vendu sur cette période.</p>`}</section>`}
+function cumul(){/* courbe du cumul des ventes du mois face à l'objectif (réparti selon les heures d'ouverture) */
+ const m=E.mois,[y,mo]=m.m.split("-").map(Number),nd=new Date(y,mo,0).getDate(),O=objMois(),goal=O.ca;if(!goal)return"";
+ const per={};m.parJour.forEach(([d,v])=>per[+d]=v);const now=new Date(),cur=(now.getFullYear()===y&&now.getMonth()===mo-1)?now.getDate():nd;
+ let c=0,h=0;const act=[],tgt=[[0,0]];for(let d=1;d<=nd;d++){h+=hoursOf(new Date(y,mo-1,d));tgt.push([d,goal*h/O.H]);if(d<=cur){c+=per[d]||0;act.push([d,c])}}
+ const W=320,Hh=150,mx=Math.max(goal,c)*1.05,X=d=>(d/nd*W).toFixed(1),Y=v=>(Hh-v/mx*Hh).toFixed(1),pth=a=>a.map((p,i)=>(i?"L":"M")+X(p[0])+" "+Y(p[1])).join(" ");
+ const last=act[act.length-1]||[0,0],tAt=(tgt[cur]||[0,0])[1],diff=c-tAt;
+ return`<section class="card" aria-label="Cumul du mois"><div class="ct"><b>Cumul du mois</b><span class="sm ${diff>=0?"okc":"amb"}">${diff>=0?"En avance de ":"En retard de "}${fmtN(Math.abs(Math.round(diff/1000)*1000))} Ar</span></div>
+ <svg class="cum" viewBox="-4 -8 ${W+8} ${Hh+24}" role="img" aria-label="Cumul des ventes ${fmtN(c)} Ar, objectif ${fmtN(goal)} Ar">
+ <line x1="0" y1="${Y(goal)}" x2="${W}" y2="${Y(goal)}" class="cg"/><text x="${W}" y="${(+Y(goal)-5).toFixed(1)}" text-anchor="end" class="ctx">Objectif ${(goal/1e6).toFixed(0)} M</text>
+ <path d="${pth(tgt)}" class="ct2"/><path d="${pth([[0,0],...act])} L${X(last[0])} ${Hh} L0 ${Hh}Z" class="ca2"/><path d="${pth([[0,0],...act])}" class="cl"/>
+ <circle cx="${X(last[0])}" cy="${Y(last[1])}" r="5" class="cd"/><line x1="0" y1="${Hh}" x2="${W}" y2="${Hh}" class="cx"/>
+ <text x="0" y="${Hh+16}" class="ctx">1</text><text x="${X(15)}" y="${Hh+16}" text-anchor="middle" class="ctx">15</text><text x="${W}" y="${Hh+16}" text-anchor="end" class="ctx">${nd}</text></svg>
+ <div class="leg2"><span><i class="la"></i>Ventes cumulées · ${fmtN(c)}</span><span><i class="lt"></i>Rythme objectif</span></div></section>`}
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
  ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}</section>
  
- <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
+ ${cumul()}<section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
  ${vObjMois()}
  ${vModeles()}
@@ -129,7 +144,7 @@ function vPlus(){const dark=document.documentElement.dataset.theme!=="light";
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand("copy")}catch(x){}a.remove();return ok}}
 function curTheme(){try{return localStorage.getItem("dg_theme")||"auto"}catch(e){return"auto"}}
 function applyTheme(){const p=curTheme(),light=p==="light"||(p==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches);
- if(light)document.documentElement.dataset.theme="light";else delete document.documentElement.dataset.theme;const m=$('meta[name="theme-color"]');if(m)m.content=light?"#f5f6f8":"#0b0d10"}
+ if(light)document.documentElement.dataset.theme="light";else delete document.documentElement.dataset.theme;const m=$('meta[name="theme-color"]');if(m)m.content=light?"#f5f6f8":"#04110a"}
 function setTheme(t){try{localStorage.setItem("dg_theme",t)}catch(e){}applyTheme();render()}
 try{matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{applyTheme();if(USER)render()})}catch(e){}applyTheme();
 /* ---------- panneaux de détail (clic sur une carte) ---------- */
