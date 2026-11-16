@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.10 · 16/11";
+const APP_VERSION="2.11 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -30,7 +30,7 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
  setTimeout(()=>{if(USER&&!E&&navigator.onLine)fallback()},14000);
  try{const r=FBX.init(DG_CONFIG||{},{persistent:!NOP});if(r&&r.then)await Promise.race([r,new Promise(z=>setTimeout(z,4000))])}catch(e){const m=document.getElementById("bootmsg");if(m)m.textContent="Erreur : "+(e.message||e)}
  FBX.onAuth(u=>{USER=u;if(!u){if(UNSUB){UNSUB();UNSUB=null}return loginScreen()}
-  if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};watchObj();render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
+  if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};adjOld();watchObj();render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
   render()})})();
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
@@ -67,7 +67,7 @@ function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const m
 const lrow=(k,l,v,cls)=>`<button class="lr" data-sh="${k}"><span>${l}</span><b class="${cls||""}">${v}</b>${ic(CHEV)}</button>`;
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard),nA=(nV?1:0)+(E.refusees?1:0)+(late.length?1:0)+(E.stock.faible.length?1:0);
  return`<button class="card hero tap" data-sh="ventes"><div class="ht"><div><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
- <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule).length} ticket(s)</span></div></div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
+ <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule&&!t.ancienne).length} ticket(s)</span></div>${j.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes saisies ce jour : ${fmtN(j.anciennes)} Ar</div>`:""}</div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
  ${vObjJour()}
  <section class="card list" aria-label="Résumé">${lrow("encaisse","Encaissé",fmtN(j.encaisse))}${lrow("depenses","Dépenses",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}${lrow("credit","À crédit",fmtN(j.credit))}${lrow("soldes","Espèces attendues",fmtN(j.especes))}${lrow("marge","Marge estimée",j.marge==null?"—":fmtN(j.marge))}${lrow("cloture","Clôture",j.cloture?(j.cloture.ecart?"Écart "+fmtN(j.cloture.ecart):"Caisse juste"):"Pas encore faite",j.cloture?(j.cloture.ecart?"red":""):"amb")}</section>
  ${nA?`<div class="sec"><h2>À traiter</h2>${tag(nA,"r")}</div><section class="card list" aria-label="À traiter">
@@ -75,7 +75,7 @@ function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x
  ${E.refusees?`<div class="ar"><i class="ic r">${ic(WARN)}</i><span class="grow"><b>${E.refusees} vente(s) refusée(s)</b><small>pas encore régularisée(s) au magasin</small></span></div>`:""}
  ${late.length?`<button class="ar" data-go="dettes"><i class="ic r">${ic(CLOCK)}</i><span class="grow"><b>${late.length} dette${late.length>1?"s":""} en retard</b><small>${esc(late.slice(0,2).map(x=>x.tiers).join(", "))} · ${fmtN(late.reduce((s,x)=>s+x.reste,0))}</small></span>${ic(CHEV)}</button>`:""}
  ${E.stock.faible.length?`<button class="ar" data-go="plus"><i class="ic a">${ic(BOX)}</i><span class="grow"><b>Stock faible : ${E.stock.faible.length} article(s)</b><small>${esc(E.stock.faible.slice(0,2).map(i=>i.nom).join(", "))}</small></span>${ic(CHEV)}</button>`:""}</section>`:""}
- <div class="sec"><h2>Tickets du jour</h2></div><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small>${t.annule?`<span class="tgs">${tag("annulé","r")}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
+ <div class="sec"><h2>Tickets du jour</h2></div><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small>${t.annule?`<span class="tgs">${tag("annulé","r")}</span>`:t.ancienne?`<span class="tgs">${tag("ancienne dette · non comptée")}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
  <div class="sec"><h2>Dépenses du jour</h2></div><section class="card list">${j.depensesListe.map(o=>`<button class="li tap" data-sh="depenses"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${o.h} · ${esc(o.cat)}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="red">−${fmtN(o.m)}</b></button>`).join("")||`<p class="mute pad">Aucune dépense.</p>`}</section>`}
 function vValider(){const L=E.validations;if(!L.length)return`<div class="empty">Aucune vente à valider. Tout est en ordre.</div>`;
  return L.map(v=>{const prix=v.lignes.reduce((s,l)=>s+l.prix,0),mn=v.lignes.reduce((s,l)=>s+l.minimum,0),ct=v.lignes.reduce((s,l)=>s+l.cout,0),sent=SENT[v.cle];
@@ -103,7 +103,7 @@ function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><d
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
- ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}</section>
+ ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes saisies ce mois : ${fmtN(m.anciennes)} Ar.</div>`:""}</section>
  
  <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
@@ -140,7 +140,7 @@ function openSheet(title,html){closeSheet(true);const bg=document.createElement(
  try{history.pushState({sheet:1},"")}catch(e){}setTimeout(()=>{const x=$("#shx");if(x)x.focus()},30)}
 const row=(a,b,c,cls)=>`<div class="li"><span class="grow"><b>${a}</b>${c?`<small class="mute">${c}</small>`:""}</span><b class="${cls||""}">${b}</b></div>`;
 const tot=(l,v,cls)=>`<div class="sh-tot"><span>${l}</span><b class="${cls||""}">${v}</b></div>`;
-function tkTags(t){return[t.annule?tag("annulé","r"):"",t.credit?tag("crédit","w"):"",t.acompte?tag("acompte","w"):"",t.sousMin?tag("sous le minimum","r"):""].join(" ")}
+function tkTags(t){return[t.annule?tag("annulé","r"):"",t.ancienne?tag("ancienne dette · non comptée"):"",t.credit?tag("crédit","w"):"",t.acompte?tag("acompte","w"):"",t.sousMin?tag("sous le minimum","r"):""].join(" ")}
 function tkRow(t,i){return`<button class="li tap" data-tk="${i}"><span class="grow"><b class="${t.annule?"strike":""}">${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}${t.modes?" · "+esc(t.modes):""}</small>${tkTags(t)?`<span class="tgs">${tkTags(t)}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`}
 function groupSum(A,k,v){const o={};A.forEach(x=>{const kk=k(x)||"—";o[kk]=(o[kk]||0)+v(x)});return Object.entries(o).sort((a,b)=>b[1]-a[1])}
 const SHEETS={
@@ -193,7 +193,7 @@ function hoursBefore(now){let h=0;const d=new Date(now.getFullYear(),now.getMont
 function workDaysLeft(now){let n=0;const d=new Date(now);d.setHours(0,0,0,0);const m=d.getMonth();while(d.getMonth()===m){if(hoursOf(d))n++;d.setDate(d.getDate()+1)}return n}
 function curYM(){return E&&E.mois&&E.mois.m||ymd(new Date()).slice(0,7)}
 function watchObj(){const ym=curYM();if(OBJ_YM===ym&&OBJ_UNSUB)return;if(OBJ_UNSUB){OBJ_UNSUB();OBJ_UNSUB=null}OBJ_YM=ym;OBJ=null;
- OBJ_UNSUB=FBX.onDoc("objectifs/"+ym,d=>{OBJ=d||null;render()},()=>{})}
+ OBJ_UNSUB=FBX.onDoc("objectifs/"+ym,d=>{OBJ=d||null;OBJ_OK=true;adjMonth();saveOld();render()},()=>{})}
 function objMois(){const now=new Date(),H=monthHours(now.getFullYear(),now.getMonth());
  if(OBJ&&(OBJ.ca||OBJ.marge||OBJ.motos))return{ca:+OBJ.ca||0,marge:+OBJ.marge||0,motos:+OBJ.motos||0,prop:false,H};
  return{ca:Math.round(OBJ_PROP.ca*H/100000)*100000,marge:Math.round(OBJ_PROP.marge*H/100000)*100000,motos:Math.round(OBJ_PROP.motos*H),prop:true,H}}
@@ -228,7 +228,7 @@ function editObj(){const O=objMois(),now=new Date(),mn=(m=>m[0].toUpperCase()+m.
  <button class="b2 yes full" id="o_save">Enregistrer</button>`);
  $("#o_save").onclick=async()=>{const ca=parseAmt($("#o_ca").value),mg=parseAmt($("#o_mg").value),mo=parseInt(String($("#o_mo").value).replace(/\D/g,""),10);
   if(!(ca>0)||!(mg>=0)||!(mo>=0)){$("#o_err").textContent="Vérifiez les montants (chiffres uniquement, ou 70M).";return}
-  try{await FBX.set("objectifs/"+curYM(),{ca,marge:mg,motos:mo,par:USER.email,ts:Date.now()});closeSheet();toast("Objectifs enregistrés")}catch(e){toast("Enregistrement impossible : vérifiez internet",4000)}}}
+  try{await FBX.set("objectifs/"+curYM(),{ca,marge:mg,motos:mo,par:USER.email,ts:Date.now()},true);closeSheet();toast("Objectifs enregistrés")}catch(e){toast("Enregistrement impossible : vérifiez internet",4000)}}}
 /* ---------- modifications par le gérant (envoyées à la caisse, appliquées par le PC) ---------- */
 let MODS={};try{MODS=JSON.parse(localStorage.getItem("dg_mods")||"{}")}catch(e){}
 function modState(id){const m=E&&E.modifs&&E.modifs[id];if(m)return"appliquee";return MODS[id]||""}
@@ -274,6 +274,18 @@ function editDette(x){if(!x||!x.id)return;
   if(Object.keys(ch).some(k=>k!=="echeance")&&mo.length<3){$("#d_err").textContent="Indiquez le motif de la modification.";$("#d_mo").focus();return}
   MODS["d:"+x.id]="modif";localStorage.setItem("dg_mods",JSON.stringify(MODS));
   await sendCmd({type:"modifDette",id:x.id,champs:ch,motif:mo});closeSheet();render();toast(navigator.onLine?"Modification envoyée à la caisse":"Elle partira au retour du réseau",3500)}}
+/* ---------- anciennes dettes saisies à la main (page Clients) : pas des ventes ----------
+   Une dette créée sans ticket (ex. « Reste à payer 30/06 ») est une reprise de solde. On la retire des
+   ventes du jour et du mois. Le total retiré par jour est gardé dans objectifs/{mois}.anciennes. */
+let OBJ_OK=false;
+function adjOld(){if(!E||!E.jour||E.jour._adj)return;const j=E.jour;let old=0;j.tickets.forEach(t=>{if(t.credit&&!t.n&&!t.annule){t.ancienne=true;old+=t.tot}});
+ j._adj=true;j.anciennes=old;j.ventes-=old;j.credit=Math.max(0,j.credit-old);E.mois.caBrut=E.mois.ca;E.mois.parJourBrut=E.mois.parJour.map(x=>x.slice());adjMonth()}
+function oldMap(){const a=Object.assign({},OBJ&&OBJ.anciennes||{});if(E&&E.jour&&E.jour.date&&E.jour.date.slice(0,7)===E.mois.m)a[E.jour.date]=E.jour.anciennes||0;return a}
+function adjMonth(){if(!E||!E.mois||E.mois.caBrut==null)return;const a=oldMap(),ym=E.mois.m;let tot=0;
+ E.mois.parJour=E.mois.parJourBrut.map(([d,v])=>{const o=+a[ym+"-"+d]||0;tot+=Math.min(o,v);return[d,Math.max(0,v-o)]}).filter(x=>x[1]>0);
+ E.mois.ca=E.mois.caBrut-tot;E.mois.anciennes=tot}
+function saveOld(){if(!OBJ_OK||!E||!E.jour||!E.jour._adj||!E.jour.date||E.jour.date.slice(0,7)!==curYM())return;const v=E.jour.anciennes||0,cur=+(OBJ&&OBJ.anciennes&&OBJ.anciennes[E.jour.date])||0;
+ if(v!==cur)FBX.set("objectifs/"+curYM(),{anciennes:{[E.jour.date]:v}},true).catch(()=>{})}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
