@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.4 · 14/11";
+const APP_VERSION="2.5 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -25,7 +25,7 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
 (async()=>{if(!window.DG_CONFIG||!DG_CONFIG.apiKey&&FBX.kind!=="mock"){$("#app").innerHTML=`<div class="login"><div class="lbox"><div class="logo">DMS</div><h1>App Gérant</h1><p>La configuration Firebase n'est pas encore installée (fichier config.js).</p></div></div>`;return}
  await FBX.init(DG_CONFIG||{},{persistent:true});
  FBX.onAuth(u=>{USER=u;if(!u){if(UNSUB){UNSUB();UNSUB=null}return loginScreen()}
-  if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
+  if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};watchObj();render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
   render()})})();
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
@@ -62,7 +62,8 @@ function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const m
 const lrow=(k,l,v,cls)=>`<button class="lr" data-sh="${k}"><span>${l}</span><b class="${cls||""}">${v}</b>${ic(CHEV)}</button>`;
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard),nA=(nV?1:0)+(E.refusees?1:0)+(late.length?1:0)+(E.stock.faible.length?1:0);
  return`<button class="card hero tap" data-sh="ventes"><div class="ht"><div><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
- <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule).length} ticket(s)</span></div></div>${j.cloture?tag("Clôturée","g"):tag("Journée ouverte","w")}</div>${spark()}</button>
+ <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule).length} ticket(s)</span></div></div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
+ ${vObjJour()}
  <section class="card list" aria-label="Résumé">${lrow("encaisse","Encaissé",fmtN(j.encaisse))}${lrow("depenses","Dépenses",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}${lrow("credit","À crédit",fmtN(j.credit))}${lrow("soldes","Espèces attendues",fmtN(j.especes))}${lrow("marge","Marge estimée",j.marge==null?"—":fmtN(j.marge))}${lrow("cloture","Clôture",j.cloture?(j.cloture.ecart?"Écart "+fmtN(j.cloture.ecart):"Caisse juste"):"Pas encore faite",j.cloture?(j.cloture.ecart?"red":""):"amb")}</section>
  ${nA?`<div class="sec"><h2>À traiter</h2>${tag(nA,"r")}</div><section class="card list" aria-label="À traiter">
  ${nV?`<button class="ar" data-go="valider"><i class="ic a">${ic(WARN)}</i><span class="grow"><b>${nV} vente${nV>1?"s":""} sous le minimum</b><small>à accepter ou refuser</small></span>${ic(CHEV)}</button>`:""}
@@ -98,9 +99,10 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
  ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}</section>
- ${m.objCa?`<section class="card"><div class="ct"><b>Objectif du mois</b><span class="sm mute">${Math.round(m.ca*100/m.objCa)} %</span></div><div class="prog"><i style="width:${Math.min(100,m.ca*100/m.objCa)}%"></i></div><div class="s">${fmtN(m.ca)} sur ${fmtN(m.objCa)} Ar</div></section>`:""}
+ 
  <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
+ ${vObjMois()}
  ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>
  <section class="card"><div class="ct"><b>Plus grosses sorties</b></div>${hbars(m.depCat)||`<p class="mute pad">—</p>`}
@@ -127,7 +129,7 @@ function closeSheet(fromPop){const bg=$("#dsheet");if(!bg)return;bg.remove();if(
 window.addEventListener("popstate",()=>closeSheet(true));
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 function openSheet(title,html){closeSheet(true);const bg=document.createElement("div");bg.className="sheet-bg";bg.id="dsheet";
- bg.innerHTML=`<div class="sheet big" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><h2 class="sh-t">${esc(title)}</h2><button class="x" id="shx" aria-label="Fermer">${ic(X_ICON)}</button></div><div class="sh-b">${html}</div></div>`;
+ bg.innerHTML=`<div class="sheet tall" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="sh-h"><h2 class="sh-t">${esc(title)}</h2><button class="x" id="shx" aria-label="Fermer">${ic(X_ICON)}</button></div><div class="sh-b">${html}</div></div>`;
  document.body.appendChild(bg);bg.onclick=e=>{if(e.target===bg)closeSheet()};$("#shx").onclick=()=>closeSheet();
  $$("[data-go]",bg).forEach(b=>b.onclick=()=>{closeSheet();TAB=b.dataset.go;render()});
  try{history.pushState({sheet:1},"")}catch(e){}setTimeout(()=>{const x=$("#shx");if(x)x.focus()},30)}
@@ -165,11 +167,67 @@ function showSheet(k){const f=SHEETS[k];if(!f||!E)return;const[t,h]=f();openShee
 function showTicket(i){const t=E.jour.tickets[+i];if(!t)return;
  openSheet(t.n?"Ticket n° "+t.n:"Ticket",`${tot("Total",fmtN(t.tot)+" Ar")}<div class="card list" style="margin-top:8px">${row("Articles",`<span style="font-weight:600;text-align:right;display:block;max-width:220px">${esc(t.lib)}</span>`)}${row("Heure",t.h)}${row("Client",esc(t.tiers||"client comptoir"))}${row("Paiement",esc(t.modes||"—"))}${t.par?row("Caissier",esc(t.par)):""}</div>${tkTags(t)?`<p style="margin:10px 0 0">${tkTags(t)}</p>`:""}${t.sousMin?`<button class="b2 ghost full" data-go="valider">Voir les ventes à valider</button>`:""}`)}
 function bindSheetTickets(){$$("#dsheet [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk))}
+/* ---------- objectifs (jour et mois) ----------
+   Heures d'ouverture : lundi-vendredi 9h-17h (8 h), samedi 9h-12h (3 h), dimanche et jours fériés fermés.
+   Objectif du jour fixe = objectif du mois × heures du jour ÷ heures du mois.
+   Objectif pour rattraper = (objectif du mois − déjà fait avant aujourd'hui) × heures du jour ÷ heures restantes depuis ce matin. */
+let OBJ=null,OBJ_YM="",OBJ_UNSUB=null;
+/* Proposition par heure d'ouverture, calée sur novembre 2026 (180 h) : 70 M Ar de ventes, 21 M de marge (≈30 %), 22 motos. */
+const OBJ_PROP={ca:70000000/180,marge:21000000/180,motos:22/180};
+function paques(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1;return new Date(y,mo-1,da)}
+const FERIES={};
+function feries(y){if(FERIES[y])return FERIES[y];const S=new Set(["01-01","03-08","03-29","05-01","06-26","08-15","11-01","12-25"].map(x=>y+"-"+x)),p=paques(y),add=n=>{const d=new Date(p);d.setDate(d.getDate()+n);S.add(ymd(d))};add(1);add(39);add(50);return FERIES[y]=S}
+function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function openH(d){if(feries(d.getFullYear()).has(ymd(d)))return[0,0];const w=d.getDay();return w===0?[0,0]:w===6?[9,12]:[9,17]}
+function hoursOf(d){const[a,b]=openH(d);return b-a}
+function elapsedToday(now){const[a,b]=openH(now);if(a===b)return 0;const t=now.getHours()+now.getMinutes()/60;return Math.max(0,Math.min(b,t)-a)}
+function monthHours(y,m){let h=0;const d=new Date(y,m,1);while(d.getMonth()===m){h+=hoursOf(d);d.setDate(d.getDate()+1)}return h}
+function hoursBefore(now){let h=0;const d=new Date(now.getFullYear(),now.getMonth(),1);while(d.getDate()<now.getDate()){h+=hoursOf(d);d.setDate(d.getDate()+1)}return h}
+function workDaysLeft(now){let n=0;const d=new Date(now);d.setHours(0,0,0,0);const m=d.getMonth();while(d.getMonth()===m){if(hoursOf(d))n++;d.setDate(d.getDate()+1)}return n}
+function curYM(){return E&&E.mois&&E.mois.m||ymd(new Date()).slice(0,7)}
+function watchObj(){const ym=curYM();if(OBJ_YM===ym&&OBJ_UNSUB)return;if(OBJ_UNSUB){OBJ_UNSUB();OBJ_UNSUB=null}OBJ_YM=ym;OBJ=null;
+ OBJ_UNSUB=FBX.onDoc("objectifs/"+ym,d=>{OBJ=d||null;render()},()=>{})}
+function objMois(){const now=new Date(),H=monthHours(now.getFullYear(),now.getMonth());
+ if(OBJ&&(OBJ.ca||OBJ.marge||OBJ.motos))return{ca:+OBJ.ca||0,marge:+OBJ.marge||0,motos:+OBJ.motos||0,prop:false,H};
+ return{ca:Math.round(OBJ_PROP.ca*H/100000)*100000,marge:Math.round(OBJ_PROP.marge*H/100000)*100000,motos:Math.round(OBJ_PROP.motos*H),prop:true,H}}
+function fmtQ(v,k){return k==="motos"?(Math.round(v*10)/10).toString().replace(".",","):fmtN(Math.round(v/1000)*1000)}
+function gaugeRow(lbl,k,val,goal,expect,extra){if(!goal)return"";const pct=Math.min(100,val*100/goal),ex=Math.min(100,expect*100/goal),ahead=val>=expect,unit=k==="motos"?"":" Ar";
+ const st=val>=goal?`<span class="ok">Objectif atteint</span>`:expect>0?(ahead?`<span class="ok">En avance de ${fmtQ(val-expect,k)}${unit}</span>`:`<span class="lt">En retard de ${fmtQ(expect-val,k)}${unit}</span>`):`<span class="mute">Pas encore commencé</span>`;
+ return`<div class="gr"><div class="gt"><span>${lbl}</span><span><b>${val==null?"—":fmtQ(val,k)}</b><span class="mute"> / ${fmtQ(goal,k)}${unit}</span></span></div>
+ <div class="gb" role="img" aria-label="${lbl} : ${Math.round(pct)} % de l'objectif"><i class="${val>=goal?"done":""}" style="width:${pct}%"></i>${expect>0&&expect<goal?`<u style="left:${ex}%"></u>`:""}</div>
+ <div class="gs">${st}${extra?`<span class="mute">${extra}</span>`:""}</div></div>`}
+function vObjJour(){const now=new Date(),hT=hoursOf(now);if(!E)return"";const O=objMois(),j=E.jour,m=E.mois;
+ if(!hT)return`<section class="card obj"><div class="ct"><b>Objectifs du jour</b><button class="lk" data-objedit>Modifier</button></div><p class="mute sm" style="margin:0">Boutique fermée aujourd'hui (${now.getDay()===0?"dimanche":"jour férié"}). Pas d'objectif.</p></section>`;
+ const hB=hoursBefore(now),rest=O.H-hB,frac=elapsedToday(now)/hT,R=k=>{const done=(k==="motos"?m.motos-j.motos:k==="ca"?m.ca-j.ventes:(m.marge==null?0:m.marge)-(j.marge||0)),g=O[k];return{fixe:g*hT/O.H,ratt:rest>0?Math.max(0,g-done)*hT/rest:0}};
+ const row=(lbl,k,val)=>{const r=R(k),tgt=Math.max(r.fixe,r.ratt),unit=k==="motos"?"":" Ar";return gaugeRow(lbl,k,val,tgt,tgt*frac,Math.abs(r.ratt-r.fixe)>(k==="motos"?0.05:1000)?`Fixe ${fmtQ(r.fixe,k)}${unit} · pour rattraper ${fmtQ(r.ratt,k)}${unit}`:`Fixe ${fmtQ(r.fixe,k)}${unit}`)};
+ return`<section class="card obj" aria-label="Objectifs du jour"><div class="ct"><b>Objectifs du jour</b><button class="lk" data-objedit>${O.prop?"Proposés · modifier":"Modifier"}</button></div>
+ <p class="s" style="margin:-2px 0 8px">${now.getDay()===6?"Samedi 9h–12h":"9h–17h"} · ${Math.round(frac*100)} % de la journée écoulée · le trait montre où il faudrait en être maintenant</p>
+ ${row("Ventes","ca",j.ventes)}${row("Marge","marge",j.marge==null?0:j.marge)}${row("Motos","motos",j.motos)}
+ ${j.marge==null&&j.ventes?`<p class="s" style="margin:6px 0 0">Marge du jour inconnue : coûts d'achat non renseignés.</p>`:""}</section>`}
+function vObjMois(){if(!E)return"";const now=new Date(),O=objMois(),m=E.mois,hB=hoursBefore(now)+elapsedToday(now),fr=O.H?hB/O.H:0,left=workDaysLeft(now)-(elapsedToday(now)>=hoursOf(now)&&hoursOf(now)?1:0);
+ const row=(lbl,k,val)=>{const g=O[k],rem=Math.max(0,g-(val||0)),unit=k==="motos"?"":" Ar";return gaugeRow(lbl,k,val||0,g,g*fr,rem>0&&left>0?`Reste ${fmtQ(rem,k)}${unit} · ${fmtQ(rem/left,k)}${unit} par jour ouvré (${left} j)`:"")};
+ return`<section class="card obj" aria-label="Objectifs du mois"><div class="ct"><b>Objectifs du mois</b><button class="lk" data-objedit>Modifier</button></div>
+ ${O.prop?`<div class="note sm" style="margin:0 0 10px">Objectifs <b>proposés</b> d'après vos ventes du 28/10 au 12/11. Touchez « Modifier » pour les valider ou les changer.</div>`:""}
+ <p class="s" style="margin:-2px 0 8px">${O.H} h d'ouverture ce mois · ${Math.round(fr*100)} % écoulé</p>
+ ${row("Ventes","ca",m.ca)}${row("Marge","marge",m.marge)}${row("Motos","motos",m.motos)}</section>`}
+function parseAmt(s){s=String(s||"").trim().toLowerCase().replace(/\s| |ar/g,"").replace(",",".");const mm=s.match(/^([\d.]+)(m|k)?$/);if(!mm)return NaN;return Math.round(parseFloat(mm[1])*(mm[2]==="m"?1e6:mm[2]==="k"?1e3:1))}
+function editObj(){const O=objMois(),now=new Date(),mn=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[now.getMonth()]);
+ openSheet("Objectifs de "+mn,`<p class="s" style="margin:0 0 4px">${O.H} heures d'ouverture ce mois (lundi–vendredi 9h–17h, samedi 9h–12h, jours fériés retirés). L'objectif du jour est calculé tout seul à partir du mois.</p>
+ <label class="fl">Ventes du mois (Ar)<input id="o_ca" inputmode="decimal" value="${fmtN(O.ca)}"><small>Ex. 70M ou 70 000 000</small></label>
+ <label class="fl">Marge du mois (Ar)<input id="o_mg" inputmode="decimal" value="${fmtN(O.marge)}"><small>Proposition : environ 30 % des ventes (votre marge constatée en novembre)</small></label>
+ <label class="fl">Motos vendues dans le mois<input id="o_mo" inputmode="numeric" value="${O.motos}"></label>
+ <div class="note sm">Repères : au rythme du 28/10 au 12/11, la boutique fait environ 4 M Ar de ventes par jour ouvré. Avec environ 6 M Ar de charges par mois (loyer, salaires, frais), il faut environ <b>19 M Ar de ventes</b> (≈ 7 motos) pour couvrir les charges.</div>
+ <div id="o_err" class="red sm" role="alert"></div>
+ <button class="b2 yes full" id="o_save">Enregistrer</button>`);
+ $("#o_save").onclick=async()=>{const ca=parseAmt($("#o_ca").value),mg=parseAmt($("#o_mg").value),mo=parseInt(String($("#o_mo").value).replace(/\D/g,""),10);
+  if(!(ca>0)||!(mg>=0)||!(mo>=0)){$("#o_err").textContent="Vérifiez les montants (chiffres uniquement, ou 70M).";return}
+  try{await FBX.set("objectifs/"+curYM(),{ca,marge:mg,motos:mo,par:USER.email,ts:Date.now()});closeSheet();toast("Objectifs enregistrés")}catch(e){toast("Enregistrement impossible : vérifiez internet",4000)}}}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
  $$("[data-mf]").forEach(b=>b.onclick=()=>{MF=b.dataset.mf;render()});
+ $$("#app [data-objedit]").forEach(b=>b.onclick=editObj);
  $$("[data-df]").forEach(b=>b.onclick=()=>{DF=b.dataset.df;render()});
  $$("[data-th]").forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
  $$("[data-rel]").forEach(b=>b.onclick=async()=>{const x=E.dettes.liste[+b.dataset.rel];if(!x)return;const t=relance(x);

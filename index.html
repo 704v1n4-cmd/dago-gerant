@@ -94,8 +94,8 @@ button.hero:after{content:"";position:absolute;top:22px;right:20px;width:9px;hei
 button.li{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);font-size:14px;cursor:pointer}button.li:first-child{border-top:0}
 button.li .grow{display:flex;flex-direction:column}button.li:focus-visible,button.card:focus-visible,button.hero:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button.card:active,button.hero:active,button.li:active{opacity:.85}
-.tgs{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:4px;margin-top:4px}.tgs .tag{margin:0}.sheet.big{max-height:88vh;padding:0;gap:0}.sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 10px}
-.sh-t{margin:0;font-size:19px;font-weight:800;color:var(--ink)}.x{all:unset;width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}.x svg{width:20px;height:20px}
+.tgs{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:4px;margin-top:4px}.tgs .tag{margin:0}.sheet.tall{max-height:88vh;padding:0;gap:0}.sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 10px}
+h2.sh-t{text-transform:none;letter-spacing:-.01em;margin:0;font-size:19px;font-weight:800;color:var(--ink)}.x{all:unset;width:44px;height:44px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}.x svg{width:20px;height:20px}
 .x:focus-visible{outline:2px solid var(--accent)}.sh-b{overflow:auto;padding:0 18px calc(env(safe-area-inset-bottom) + 20px);display:flex;flex-direction:column;gap:8px}
 .sh-s{margin:10px 2px 0;font-size:14px;font-weight:700;color:var(--mute)}.sh-tot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card2)}.sh-tot span{font-weight:600;color:var(--sub)}.sh-tot b{font-size:20px;font-weight:800}
 /* ---- v2.3 : version pro ---- */
@@ -127,13 +127,19 @@ button.card:active,button.hero:active,button.li:active{opacity:.85}
 .sw{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);flex:none}.sw.auto{background:linear-gradient(90deg,#f5f6f8 50%,#0b0d10 50%)}.sw.light{background:linear-gradient(90deg,#f5f6f8 50%,#fff 50%)}.sw.dark{background:linear-gradient(90deg,#0b0d10 50%,#14171c 50%)}
 .rd{width:22px;height:22px;border-radius:50%;border:2px solid var(--mute);box-sizing:border-box;flex:none;position:relative}.th.on .rd{border-color:var(--aline)}.th.on .rd:after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--aline)}
 input:focus-visible,textarea:focus-visible,button:focus-visible{outline-color:var(--aline)}
+.obj .ct{margin-bottom:4px}.lk{all:unset;cursor:pointer;color:var(--aline);font-weight:700;font-size:14px;padding:10px 0 10px 12px;margin:-10px 0}.lk:focus-visible{outline:2px solid var(--aline)}
+.gr{padding:10px 0;border-top:1px solid var(--line)}.gr:first-of-type{border-top:0}.gt{display:flex;justify-content:space-between;gap:8px;font-size:14px}.gt>span:first-child{font-weight:600}
+.gb{position:relative;height:10px;border-radius:5px;background:var(--card2);margin:7px 0 6px}.gb i{display:block;height:100%;border-radius:5px;background:var(--chart)}.gb i.done{background:var(--good)}
+.gb u{position:absolute;top:-3px;width:2px;height:16px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.gs{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;font-size:12px}.gs .ok{color:var(--good);font-weight:700}.gs .lt{color:var(--amber);font-weight:700}
+.fl{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--sub);margin-top:6px}.fl small{font-weight:400;color:var(--mute);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.b2:active{transform:none}}
 </style>
 </head>
 <body>
 <div id="app"></div><div id="toasts" aria-live="polite"></div>
 <script src="fbx.min.js"></script>
-<script src="config.js?v=24"></script>
-<script src="app.js?v=24"></script>
+<script src="config.js?v=26"></script>
+<script src="app.js?v=26"></script>
 </body>
 </html>
