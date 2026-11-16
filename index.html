@@ -137,6 +137,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible{outline-color:va
 select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--field);color:var(--ink);font:inherit;font-size:16px}
 .dbtn{display:flex;flex-direction:column;gap:6px;flex:none}
 button.li.strike,.li.strike{opacity:.55}button.li.strike b,button.li.strike small,.li.strike b{text-decoration:line-through}
+.hr{display:flex;align-items:center;gap:10px;flex:none}.hr .sync{white-space:normal;text-align:right;max-width:96px;line-height:1.2;font-size:11px}input[type=search]{-webkit-appearance:none;appearance:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.b2:active{transform:none}}
 </style>
 </head>
@@ -154,8 +155,8 @@ function dgFix(){var b=document.getElementById("bootfix");if(b)b.textContent="R�
  Promise.all(p).catch(function(){}).then(function(){location.replace(location.pathname+"?r="+Date.now())})}
 setTimeout(function(){if(DG_BOOT.ok)return;var b=document.getElementById("bootfix"),m=document.getElementById("bootmsg");if(b){b.hidden=false;b.onclick=dgFix}if(m&&!m.textContent)m.textContent="Le démarrage prend trop de temps (réseau lent ?). Vous pouvez réparer l'app : vos réglages et votre connexion sont gardés."},15000);
 </script>
-<script src="fbx.min.js?v=32"></script>
-<script src="config.js?v=32"></script>
-<script src="app.js?v=32"></script>
+<script src="fbx.min.js?v=33"></script>
+<script src="config.js?v=33"></script>
+<script src="app.js?v=33"></script>
 </body>
 </html>

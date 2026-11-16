@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.11 · 16/11";
+const APP_VERSION="2.12 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -44,7 +44,7 @@ function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<d
 /* ---------- affichage ---------- */
 const TABS=[["jour","Jour",'<path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/>'],["valider","Valider",'<path d="m5 12 5 5 9-10"/>'],["dettes","Dettes",'<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 11h5M19.5 8.5v5"/>'],["mois","Mois",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],["plus","Plus",'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>']];
 const ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
+const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const SRCH='<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>';const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
 let DF="tout";
 function pending(){return E?E.validations.filter(v=>!SENT[v.cle]):[]}
 function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$(".body")?$(".body").scrollTop:0;
@@ -54,7 +54,7 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Ce que les clients doivent","Dettes clients"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"]};
  const T=titles[TAB];
  $("#app").innerHTML=`<header class="mh"><div class="hl"><div class="lg" aria-hidden="true">DMS</div><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
- <span class="sync ${off||old?"w":""}">${off?"Hors ligne · ":""}Caisse ${ago(E.maj)}</span></header>
+ <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne · ":""}Caisse ${ago(E.maj)}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
  ${old&&!off?`<div class="warnbar" role="status">La caisse n'a rien envoyé depuis ${ago(E.maj).replace("il y a ","")} : PC éteint, logiciel fermé ou pas d'internet au magasin.</div>`:""}
  <main class="body">${({jour:vJour,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
  <nav class="tabs" aria-label="Menu">${TABS.map(([k,l,p])=>`<button class="${k===TAB?"on":""}" data-t="${k}" ${k===TAB?'aria-current="page"':""}><span class="pill">${ic(p)}${k==="valider"&&nV?`<em>${nV}</em>`:""}</span>${l}</button>`).join("")}</nav>`;
@@ -286,6 +286,29 @@ function adjMonth(){if(!E||!E.mois||E.mois.caBrut==null)return;const a=oldMap(),
  E.mois.ca=E.mois.caBrut-tot;E.mois.anciennes=tot}
 function saveOld(){if(!OBJ_OK||!E||!E.jour||!E.jour._adj||!E.jour.date||E.jour.date.slice(0,7)!==curYM())return;const v=E.jour.anciennes||0,cur=+(OBJ&&OBJ.anciennes&&OBJ.anciennes[E.jour.date])||0;
  if(v!==cur)FBX.set("objectifs/"+curYM(),{anciennes:{[E.jour.date]:v}},true).catch(()=>{})}
+/* ---------- recherche (dans la dernière sauvegarde en ligne de la caisse) ---------- */
+let BK=null,BKQ="";
+const nrm=s=>String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+async function loadBK(force){if(BK&&!force&&Date.now()-BK.loaded<5*60000)return BK;
+ const L=(await FBX.list("sauvegardes")).sort((a,b)=>String(b.date).localeCompare(String(a.date)));if(!L.length)throw new Error("vide");
+ const m=L[0];let s="";for(let i=0;i<(+m.parts||1);i++){const p=await FBX.get("sauvegardes_parts/"+m.date+"_"+i);s+=p&&p.data||""}
+ const d=JSON.parse(s);BK={ts:m.ts,loaded:Date.now(),
+  ops:Object.values(d.ops||{}).sort((a,b)=>(b.ts||0)-(a.ts||0)).map(o=>({o,h:nrm([o.libelle,o.tiers,o.cat,o.mode,o.montant,o.ticket?"ticket "+o.ticket+" n"+o.ticket:"",o.date,fd(o.date),(o.motos||[]).map(x=>[x.modele,x.moteur,x.chassis,x.couleur].join(" ")).join(" "),o.article&&o.article.nom].join(" "))})),
+  arts:Object.values(d.catalogue||{}).filter(a=>a.actif!==false).map(a=>({a,h:nrm([a.nom,a.cat].join(" "))})),
+  tiers:Object.values(d.tiers||{}).map(t=>({t,h:nrm([t.nom,t.tel,t.type].join(" "))}))};return BK}
+function searchHtml(q){const W=/^[\d\s\u202f.]+$/.test(q.trim())?[q.replace(/\D/g,"")]:nrm(q).split(/\s+/).filter(Boolean);if(!W.length||nrm(q).replace(/\s/g,"").length<2)return`<p class="mute sm" style="margin:6px 0">Tapez au moins 2 lettres : article, client, n° moteur, libellé, montant, date (ex. 14/11)…</p>`;
+ const ok=h=>W.every(w=>h.includes(w)),A=BK.arts.filter(x=>ok(x.h)),O=BK.ops.filter(x=>ok(x.h)),T=BK.tiers.filter(x=>ok(x.h)),Dt=(E?E.dettes.liste:[]).filter(x=>ok(nrm(x.tiers+" "+x.lib)));
+ if(!A.length&&!O.length&&!T.length&&!Dt.length)return`<div class="empty" style="padding:30px 10px">Rien trouvé pour « ${esc(q)} ».</div>`;
+ const more=(n,l)=>n>l?`<p class="s" style="margin:4px 2px">… et ${n-l} autre(s) : précisez la recherche.</p>`:"";
+ return(A.length?`<h3 class="sh-s">Articles (${A.length})</h3><div class="card list">${A.slice(0,15).map(({a})=>`<div class="li"><span class="grow"><b>${esc(a.nom)}</b><small class="mute">${esc(a.cat||"")}${a.min?" · min. "+fmtN(a.min):""}${a.gros?" · gros "+fmtN(a.gros):""}${a.suivi?" · stock "+(a.qte||0):""}</small></span><b>${fmtN(a.ideal||a.annonce||0)}</b></div>`).join("")}</div>${more(A.length,15)}`:"")
+ +(Dt.length?`<h3 class="sh-s">Dettes en cours (${Dt.length})</h3><div class="card list">${Dt.slice(0,10).map(x=>`<div class="li"><span class="grow"><b>${esc(x.tiers)}</b><small class="mute">${esc(x.lib)}${x.ech?" · échéance "+fd(x.ech):""}</small></span><b class="${x.retard?"red":""}">${fmtN(x.reste)}</b></div>`).join("")}</div>`:"")
+ +(O.length?`<h3 class="sh-s">Ventes et opérations (${O.length})</h3><div class="card list">${O.slice(0,40).map(({o})=>`<div class="li ${o.annule?"strike":""}"><span class="grow"><b>${esc(o.libelle)}</b><small class="mute">${fd(o.date)}${o.ticket?" · ticket "+o.ticket:""} · ${esc(o.cat||"")}${o.mode?" · "+esc(o.mode):""}${o.tiers?" · "+esc(o.tiers):""}${(o.motos||[]).length?" · moteur "+esc(o.motos.map(x=>x.moteur).filter(Boolean).join(", ")):""}</small>${o.annule?`<span class="tgs">${tag("annulé","r")}</span>`:""}</span><b class="${o.type==="S"?"red":""}">${o.type==="S"?"−":""}${fmtN(o.montant)}</b></div>`).join("")}</div>${more(O.length,40)}`:"")
+ +(T.length?`<h3 class="sh-s">Clients et fournisseurs (${T.length})</h3><div class="card list">${T.slice(0,15).map(({t})=>`<div class="li"><span class="grow"><b>${esc(t.nom)}</b><small class="mute">${esc(t.type||"")}${t.tel?" · "+esc(t.tel):""}</small></span></div>`).join("")}</div>${more(T.length,15)}`:"")}
+async function openSearch(){openSheet("Rechercher",`<label class="fl" style="margin:0">Recherche<input id="sq" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="none" placeholder="Article, client, n° moteur, montant…" value="${esc(BKQ)}"></label><p class="s" id="sinfo" style="margin:2px 0 0">Chargement de la sauvegarde en ligne…</p><div id="sres"></div>`);
+ const q=$("#sq"),go=()=>{BKQ=q.value;if(BK)$("#sres").innerHTML=searchHtml(q.value)};q.oninput=go;setTimeout(()=>q.focus(),60);
+ try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
+  $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
+ catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
@@ -293,6 +316,7 @@ function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;rende
  $$("[data-mf]").forEach(b=>b.onclick=()=>{MF=b.dataset.mf;render()});
  $$("#app [data-objedit]").forEach(b=>b.onclick=editObj);
  $$("#app [data-edd]").forEach(b=>b.onclick=()=>editDette(E.dettes.liste[+b.dataset.edd]));
+ const sb=$("#srch");if(sb)sb.onclick=openSearch;
  $$("[data-df]").forEach(b=>b.onclick=()=>{DF=b.dataset.df;render()});
  $$("[data-th]").forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
  $$("[data-rel]").forEach(b=>b.onclick=async()=>{const x=E.dettes.liste[+b.dataset.rel];if(!x)return;const t=relance(x);
