@@ -31,7 +31,11 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
  try{const r=FBX.init(DG_CONFIG||{},{persistent:!NOP});if(r&&r.then)await Promise.race([r,new Promise(z=>setTimeout(z,4000))])}catch(e){const m=document.getElementById("bootmsg");if(m)m.textContent="Erreur : "+(e.message||e)}
  FBX.onAuth(u=>{USER=u;if(!u){if(UNSUB){UNSUB();UNSUB=null}return loginScreen()}
   if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};adjOld();watchObj();render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
-  render()})})();
+  render();setTimeout(majRelay,3000)})})();
+async function majRelay(){/* publie la dernière version de la caisse (maj/derniere.json) dans Firebase si elle est plus récente */
+ try{if(!/gerant@/.test(USER&&USER.email||""))return;const r=await fetch("maj/derniere.json?"+Date.now(),{cache:"no-store"});if(!r.ok)return;const j=await r.json();
+ const cur=await FBX.get("maj/caisse");const n=v=>String(v||"0").split(".").map(Number),c=(a,b)=>{a=n(a);b=n(b);for(let i=0;i<3;i++)if((a[i]||0)!==(b[i]||0))return(a[i]||0)-(b[i]||0);return 0};
+ if(cur&&cur.cle&&j.version&&j.url&&c(j.version,cur.version)>0)await FBX.set("maj/caisse",{version:j.version,url:j.url,publie:Date.now()},true)}catch(e){}}
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
 const EYE='<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
