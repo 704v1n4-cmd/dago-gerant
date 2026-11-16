@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.8 · 16/11";
+const APP_VERSION="2.9 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -23,7 +23,12 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
 
 /* ---------- démarrage ---------- */
 (async()=>{if(!window.DG_CONFIG||!DG_CONFIG.apiKey&&FBX.kind!=="mock"){$("#app").innerHTML=`<div class="login"><div class="lbox"><div class="logo">DMS</div><h1>App Gérant</h1><p>La configuration Firebase n'est pas encore installée (fichier config.js).</p></div></div>`;return}
- await FBX.init(DG_CONFIG||{},{persistent:true});
+ const NOP=(()=>{try{return localStorage.getItem("dg_nopersist")==="1"}catch(e){return true}})();
+ /* Secours : si rien ne s'affiche (stockage du téléphone bloqué), on redémarre une fois sans le cache hors ligne. */
+ const fallback=()=>{if(NOP)return;try{localStorage.setItem("dg_nopersist","1")}catch(e){}location.reload()};
+ setTimeout(()=>{if(!window.DG_BOOT||!DG_BOOT.ok)fallback()},8000);
+ setTimeout(()=>{if(USER&&!E&&navigator.onLine)fallback()},14000);
+ try{const r=FBX.init(DG_CONFIG||{},{persistent:!NOP});if(r&&r.then)await Promise.race([r,new Promise(z=>setTimeout(z,4000))])}catch(e){const m=document.getElementById("bootmsg");if(m)m.textContent="Erreur : "+(e.message||e)}
  FBX.onAuth(u=>{USER=u;if(!u){if(UNSUB){UNSUB();UNSUB=null}return loginScreen()}
   if(!UNSUB)UNSUB=FBX.onDoc("boutique/etat",(d,m)=>{try{E=d&&typeof d.json==="string"?JSON.parse(d.json):d}catch(x){E=null};META=m||{};watchObj();render()},e=>{$("#app").innerHTML=`<div class="login"><div class="lbox"><h1>Accès refusé</h1><p>${esc(e.message||e)}</p><button class="b2 yes" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut()});
   render()})})();

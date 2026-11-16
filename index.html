@@ -147,13 +147,14 @@ window.DG_BOOT={ok:false,err:""};
 window.addEventListener("error",function(e){DG_BOOT.err=(e&&e.message)||"Erreur inconnue";var m=document.getElementById("bootmsg");if(m)m.textContent="Erreur : "+DG_BOOT.err});
 window.addEventListener("unhandledrejection",function(e){var r=e&&e.reason;DG_BOOT.err=String((r&&(r.message||r.code))||r||"");var m=document.getElementById("bootmsg");if(m&&!DG_BOOT.ok)m.textContent="Erreur : "+DG_BOOT.err});
 function dgFix(){var b=document.getElementById("bootfix");if(b)b.textContent="Réparation…";
- var p=[];try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(R){return Promise.all(R.map(function(r){return r.unregister()}))}))}catch(e){}
+ var p=[];try{localStorage.setItem("dg_nopersist","1")}catch(e){}
+ try{["firestore/[DEFAULT]/dago-caisse/main","firebaseLocalStorageDb","firebase-heartbeat-database","firebase-installations-database"].forEach(function(n){p.push(new Promise(function(ok){var r=indexedDB.deleteDatabase(n);r.onsuccess=r.onerror=r.onblocked=function(){ok()};setTimeout(ok,2500)}))})}catch(e){}try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(R){return Promise.all(R.map(function(r){return r.unregister()}))}))}catch(e){}
  try{if(window.caches)p.push(caches.keys().then(function(K){return Promise.all(K.map(function(k){return caches.delete(k)}))}))}catch(e){}
  Promise.all(p).catch(function(){}).then(function(){location.replace(location.pathname+"?r="+Date.now())})}
 setTimeout(function(){if(DG_BOOT.ok)return;var b=document.getElementById("bootfix"),m=document.getElementById("bootmsg");if(b){b.hidden=false;b.onclick=dgFix}if(m&&!m.textContent)m.textContent="Le démarrage prend trop de temps (réseau lent ?). Vous pouvez réparer l'app : vos réglages et votre connexion sont gardés."},15000);
 </script>
-<script src="fbx.min.js"></script>
-<script src="config.js?v=29"></script>
-<script src="app.js?v=29"></script>
+<script src="fbx.min.js?v=30"></script>
+<script src="config.js?v=30"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>
