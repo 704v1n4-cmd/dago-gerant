@@ -139,6 +139,22 @@ select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;b
 button.li.strike,.li.strike{opacity:.55}button.li.strike b,button.li.strike small,.li.strike b{text-decoration:line-through}
 .hr{display:flex;align-items:center;gap:10px;flex:none}.hr .sync{white-space:normal;text-align:right;max-width:96px;line-height:1.2;font-size:11px}input[type=search]{-webkit-appearance:none;appearance:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.b2:active{transform:none}}
+
+/* v3 : Bricolage Grotesque (titres, montants) + Onest (texte), palette Dago */
+@font-face{font-family:Brico;src:url(bricolage-grotesque-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Brico;src:url(bricolage-grotesque-latin-800-normal.woff2) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Onest;src:url(onest-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Onest;src:url(onest-latin-500-normal.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Onest;src:url(onest-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:Onest;src:url(onest-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--accent:#96ff1a;--onaccent:#083300;--forest:#083300;--leaf:#bfe6a3}
+html[data-theme=light]{--aline:#083300;--navon:#083300;--chart:#083300;--good:#15803d}
+html,body{font-family:Onest,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.mh h1,h2.sh-t,.hero .v,.k2 .v,.big,.logo,.lg,.dc .top b,.cmp b,.vc h3,.dt b:last-child{font-family:Brico,Onest,sans-serif}
+.hero .v,.big{font-weight:800;letter-spacing:-.02em}
+html[data-theme=light] .hero:not(.g4){background:var(--forest)!important;border-color:var(--forest)!important;color:#fff}
+html[data-theme=light] .hero:not(.g4) .l,html[data-theme=light] .hero:not(.g4) .s,html[data-theme=light] .hero:not(.g4) .leg,html[data-theme=light] .hero:not(.g4) small{color:var(--leaf)!important}
+.lg,.logo{background:#96ff1a!important;color:#083300!important}
 </style>
 </head>
 <body>
