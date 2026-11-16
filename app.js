@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.5 · 16/11";
+const APP_VERSION="2.6 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -30,7 +30,7 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
 const EYE='<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
-function loginScreen(){$("#app").innerHTML=`<div class="login"><form class="lbox" id="lf"><div class="logo">DMS</div><h1>Dago Moto Shop</h1><p class="mute">App Gérant · version ${APP_VERSION}</p>
+function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<div class="login"><form class="lbox" id="lf"><div class="logo">DMS</div><h1>Dago Moto Shop</h1><p class="mute">App Gérant · version ${APP_VERSION}</p>
  <label>E-mail<input id="le" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(localStorage.getItem("dg_email")||"")}"></label>
  <label>Mot de passe<span class="pw"><input id="lp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"><button type="button" class="eye" id="lv" aria-label="Afficher le mot de passe">${ic(EYE)}</button></span></label>
  <button class="b2 yes" type="submit">Se connecter</button></form></div>`;
@@ -42,7 +42,7 @@ const ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
 let DF="tout";
 function pending(){return E?E.validations.filter(v=>!SENT[v.cle]):[]}
-function render(){if(!USER)return;const sy=$(".body")?$(".body").scrollTop:0;
+function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$(".body")?$(".body").scrollTop:0;
  if(!E){$("#app").innerHTML=`<div class="login"><div class="lbox"><div class="logo">DMS</div><p>${navigator.onLine?"Chargement des données de la caisse…":"Pas de connexion internet. Les données apparaîtront dès que le téléphone sera connecté."}</p><p class="mute sm">Si rien n'arrive : vérifiez que la caisse est allumée et liée (Réglages › Téléphone et cloud).</p><p class="s">App version ${APP_VERSION}</p><button class="lnk" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut();return}
  const off=!navigator.onLine||META.fromCache,old=Date.now()-E.maj>15*60000,nV=pending().length;
  const mois=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[+E.mois.m.slice(5)-1]);
