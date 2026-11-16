@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.7 · 16/11";
+const APP_VERSION="2.8 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -39,7 +39,7 @@ function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<d
 /* ---------- affichage ---------- */
 const TABS=[["jour","Jour",'<path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/>'],["valider","Valider",'<path d="m5 12 5 5 9-10"/>'],["dettes","Dettes",'<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 11h5M19.5 8.5v5"/>'],["mois","Mois",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],["plus","Plus",'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>']];
 const ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
+const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
 let DF="tout";
 function pending(){return E?E.validations.filter(v=>!SENT[v.cle]):[]}
 function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$(".body")?$(".body").scrollTop:0;
@@ -87,8 +87,8 @@ function vDettes(){const all=E.dettes.liste,late=all.filter(x=>x.retard),L=DF===
  return`<section class="card" aria-label="Total des dettes"><div class="l2">Total à encaisser · ${E.dettes.n} client${E.dettes.n>1?"s":""}</div><div class="big">${fmtN(tt)} <small>Ar</small></div>
  ${tt?`<div class="split" role="img" aria-label="En retard ${fmtN(sl)}, à venir ${fmtN(tt-sl)}"><i style="width:${Math.round(sl*100/tt)}%"></i><b></b></div><div class="spl"><span><b class="red">En retard</b> · ${fmtN(sl)}</span><span>À venir · ${fmtN(tt-sl)}</span></div>`:""}</section>
  <div class="seg3" role="group" aria-label="Filtre">${[["tout","Toutes"],["retard","En retard"],["semaine","Cette semaine"]].map(([k,l])=>`<button class="${DF===k?"on":""}" data-df="${k}" aria-pressed="${DF===k}">${l}</button>`).join("")}</div>
- ${L.length?`<section class="card list" aria-label="Liste des dettes">${L.map(x=>`<div class="dr"><span class="av" aria-hidden="true">${esc(ini(x.tiers))}</span><div class="grow"><div class="dt"><b>${esc(x.tiers)}</b><b>${fmtN(x.reste)}</b></div><small class="mute el">${esc(x.lib)}</small><div>${x.ech?(x.retard?tag(daysLate(x)+" j de retard","r"):tag("Échéance le "+fd(x.ech),dueSoon(x)?"w":"")):tag("Sans échéance")}</div></div>
- <button class="ib" data-rel="${all.indexOf(x)}" aria-label="Relancer ${esc(x.tiers)}">${ic(MSG)}</button></div>`).join("")}</section><p class="s" style="text-align:center;margin:0">Le bouton bulle prépare le message de relance (WhatsApp, SMS…).</p>`:`<div class="empty">Aucune dette ici.</div>`}`}
+ ${L.length?`<section class="card list" aria-label="Liste des dettes">${L.map(x=>`<div class="dr"><span class="av" aria-hidden="true">${esc(ini(x.tiers))}</span><div class="grow"><div class="dt"><b>${esc(x.tiers)}</b><b>${fmtN(x.reste)}</b></div><small class="mute el">${esc(x.lib)}</small><div>${MODS["d:"+x.id]==="modif"?tag("modification envoyée","w")+" ":""}${x.ech?(x.retard?tag(daysLate(x)+" j de retard","r"):tag("Échéance le "+fd(x.ech),dueSoon(x)?"w":"")):tag("Sans échéance")}</div></div>
+ <span class="dbtn"><button class="ib" data-rel="${all.indexOf(x)}" aria-label="Relancer ${esc(x.tiers)}">${ic(MSG)}</button>${x.id&&E.listes?`<button class="ib" data-edd="${all.indexOf(x)}" aria-label="Modifier la dette de ${esc(x.tiers)}">${ic(PEN)}</button>`:""}</span></div>`).join("")}</section><p class="s" style="text-align:center;margin:0">Le bouton bulle prépare le message de relance (WhatsApp, SMS…).</p>`:`<div class="empty">Aucune dette ici.</div>`}`}
 let MF="mois";
 function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><div class="ct"><b>Scooters vendus par modèle</b></div><div class="note">Ce graphique apparaîtra après la mise à jour de la caisse du PC (version 2.1).</div></section>`;
  const L=(MF==="tout"?m.modelesTout:m.modeles)||[],mx=Math.max(1,...L.map(x=>x[1])),n=L.reduce((s,x)=>s+x[1],0);
@@ -254,12 +254,28 @@ function editOp(o){if(!o)return;const L=E.listes,isS=o.type==="S";
   await sendCmd({type:"modif",id:o.id,champs:ch,motif:mo});closeSheet();render();toast(navigator.onLine?"Modification envoyée à la caisse":"Modification enregistrée : elle partira au retour du réseau",3500)}}
 async function cancelOpTel(o){if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? Si c'est une vente, tout le ticket est annulé et le stock remis.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;
  MODS[o.id]="annul";localStorage.setItem("dg_mods",JSON.stringify(MODS));await sendCmd({type:"annulation",id:o.id,motif:r===true?"":r});closeSheet();render();toast("Annulation envoyée à la caisse")}
+function editDette(x){if(!x||!x.id)return;
+ openSheet("Modifier la dette",`<p class="s" style="margin:0">${esc(x.tiers)} · reste ${fmtN(x.reste)} Ar</p>
+ <label class="fl">Libellé<input id="d_l" value="${esc(x.lib)}" maxlength="200"></label>
+ <label class="fl">Client<input id="d_t" value="${esc(x.tiers)}" maxlength="80"></label>
+ <label class="fl">Montant total (Ar)<input id="d_m" inputmode="decimal" value="${fmtN(x.montant||x.reste)}"><small>Ce qui est déjà payé ne change pas ; le reste est recalculé.</small></label>
+ <label class="fl">Échéance<input id="d_e" type="date" value="${esc(x.ech||"")}"></label>
+ <label class="fl">Motif (obligatoire si libellé, client ou montant change)<input id="d_mo" maxlength="200" placeholder="Ex. erreur de saisie"></label>
+ <div id="d_err" class="red sm" role="alert"></div><button class="b2 yes full" id="d_ok">Envoyer la modification</button>`);
+ $("#d_ok").onclick=async()=>{const m=parseAmt($("#d_m").value),mo=$("#d_mo").value.trim(),nv={libelle:$("#d_l").value.trim(),tiers:$("#d_t").value.trim(),montant:m,echeance:$("#d_e").value},av={libelle:x.lib,tiers:x.tiers,montant:x.montant,echeance:x.ech||""},ch={};
+  if(!(m>0)){$("#d_err").textContent="Montant invalide.";return}
+  Object.keys(nv).forEach(k=>{if(String(nv[k])!==String(av[k])&&!((k==="libelle"||k==="tiers")&&!nv[k]))ch[k]=nv[k]});
+  if(!Object.keys(ch).length){$("#d_err").textContent="Rien n'a été changé.";return}
+  if(Object.keys(ch).some(k=>k!=="echeance")&&mo.length<3){$("#d_err").textContent="Indiquez le motif de la modification.";$("#d_mo").focus();return}
+  MODS["d:"+x.id]="modif";localStorage.setItem("dg_mods",JSON.stringify(MODS));
+  await sendCmd({type:"modifDette",id:x.id,champs:ch,motif:mo});closeSheet();render();toast(navigator.onLine?"Modification envoyée à la caisse":"Elle partira au retour du réseau",3500)}}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
  $$("[data-mf]").forEach(b=>b.onclick=()=>{MF=b.dataset.mf;render()});
  $$("#app [data-objedit]").forEach(b=>b.onclick=editObj);
+ $$("#app [data-edd]").forEach(b=>b.onclick=()=>editDette(E.dettes.liste[+b.dataset.edd]));
  $$("[data-df]").forEach(b=>b.onclick=()=>{DF=b.dataset.df;render()});
  $$("[data-th]").forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
  $$("[data-rel]").forEach(b=>b.onclick=async()=>{const x=E.dettes.liste[+b.dataset.rel];if(!x)return;const t=relance(x);
