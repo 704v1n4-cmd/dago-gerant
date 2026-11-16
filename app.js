@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.6 · 16/11";
+const APP_VERSION="2.7 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -145,8 +145,7 @@ const SHEETS={
   <h3 class="sh-s">Ventes payées, par mode</h3><div class="card list">${G.map(([m,v])=>row(esc(m),fmtN(v))).join("")||`<p class="mute pad">Aucune vente payée.</p>`}</div>
   <h3 class="sh-s">Détail</h3><div class="card list">${P.map(t=>tkRow(t,j.tickets.indexOf(t))).join("")||`<p class="mute pad">—</p>`}</div>`]},
  depenses(){const j=E.jour,L=j.depensesListe,G=groupSum(L,o=>o.cat,o=>o.m);
-  return["Dépenses du jour",tot("Total",(j.depenses?"−":"")+fmtN(j.depenses)+" Ar","red")+`<h3 class="sh-s">Par catégorie</h3><div class="card list">${G.map(([c,v])=>row(esc(c),"−"+fmtN(v),"","red")).join("")||`<p class="mute pad">Aucune dépense.</p>`}</div>
-  <h3 class="sh-s">Détail</h3><div class="card list">${L.map(o=>row(esc(o.lib),"−"+fmtN(o.m),o.h+" · "+esc(o.cat)+(o.tiers?" · "+esc(o.tiers):""),"red")).join("")||`<p class="mute pad">—</p>`}</div>`]},
+  return["Dépenses du jour",tot("Total",(j.depenses?"−":"")+fmtN(j.depenses)+" Ar","red")+`<h3 class="sh-s">Par catégorie</h3><div class="card list">${G.map(([c,v])=>row(esc(c),"−"+fmtN(v),"","red")).join("")||`<p class="mute pad">Aucune dépense.</p>`}</div><h3 class="sh-s">Détail</h3>`,L.map(o=>({id:o.id,lib:o.lib,m:o.m,mode:o.mode,cat:o.cat,tiers:o.tiers,type:"S"}))]},
  credit(){const j=E.jour,L=j.tickets.filter(t=>!t.annule&&(t.credit||t.acompte));
   return["Ventes à crédit aujourd'hui",tot("Vendu à crédit",fmtN(j.credit)+" Ar")+`<div class="card list" style="margin-top:8px">${L.map(t=>tkRow(t,j.tickets.indexOf(t))).join("")||`<p class="mute pad">Aucune vente à crédit aujourd'hui.</p>`}</div>
   <button class="b2 ghost full" data-go="dettes">Voir toutes les dettes clients (${fmtN(E.dettes.total)} Ar)</button>`]},
@@ -163,9 +162,12 @@ const SHEETS={
   <p class="s">Les retraits des associés (${fmtN(m.retraits)}) et les dépenses du camion à refacturer (${fmtN(m.camion)}) ne comptent pas dans les charges.</p>`]},
  mres(){const m=E.mois;return["Résultat du mois",m.marge==null?`<div class="note">Résultat inconnu tant que les coûts d'achat ne sont pas renseignés.</div>`:`<div class="card list">${row("Marge estimée",fmtN(m.marge))}${row("− Charges",fmtN(m.charges),"","red")}${row("= Résultat",fmtN(m.marge-m.charges))}</div><p class="s">Hors retraits des associés (${fmtN(m.retraits)}) et camion (${fmtN(m.camion)}).</p>`]}
 };
-function showSheet(k){const f=SHEETS[k];if(!f||!E)return;const[t,h]=f();openSheet(t,h);bindSheetTickets()}
+function showSheet(k){const f=SHEETS[k];if(!f||!E)return;const[t,h,ops]=f();if(ops){if(ops.length&&ops[0].id)opsSheet(t,h,ops);else openSheet(t,h+`<div class="card list">${ops.map(o=>row(esc(o.lib),"−"+fmtN(o.m),"","red")).join("")||`<p class="mute pad">—</p>`}</div>`);return}openSheet(t,h);bindSheetTickets()}
 function showTicket(i){const t=E.jour.tickets[+i];if(!t)return;
- openSheet(t.n?"Ticket n° "+t.n:"Ticket",`${tot("Total",fmtN(t.tot)+" Ar")}<div class="card list" style="margin-top:8px">${row("Articles",`<span style="font-weight:600;text-align:right;display:block;max-width:220px">${esc(t.lib)}</span>`)}${row("Heure",t.h)}${row("Client",esc(t.tiers||"client comptoir"))}${row("Paiement",esc(t.modes||"—"))}${t.par?row("Caissier",esc(t.par)):""}</div>${tkTags(t)?`<p style="margin:10px 0 0">${tkTags(t)}</p>`:""}${t.sousMin?`<button class="b2 ghost full" data-go="valider">Voir les ventes à valider</button>`:""}`)}
+ const head=`${tot("Total",fmtN(t.tot)+" Ar")}<div class="card list" style="margin-top:8px">${row("Heure",t.h)}${row("Client",esc(t.tiers||"client comptoir"))}${row("Paiement",esc(t.modes||"—"))}${t.par?row("Caissier",esc(t.par)):""}</div>${tkTags(t)?`<p style="margin:10px 0 0">${tkTags(t)}</p>`:""}${t.sousMin?`<button class="b2 ghost full" data-go="valider">Voir les ventes à valider</button>`:""}<h3 class="sh-s">Lignes du ticket</h3>`;
+ const ops=t.annule?[]:(t.lignes||[]).map(l=>({id:l.id,lib:l.lib,m:l.m,mode:l.mode,cat:l.cat,tiers:l.tiers,type:"E"}));
+ if(!ops.length){openSheet(t.n?"Ticket n° "+t.n:"Ticket",head+`<div class="card list"><div class="li"><span class="grow"><b>${esc(t.lib)}</b></span><b>${fmtN(t.tot)}</b></div></div>${t.credit?`<p class="s">Vente à crédit : modifiable sur le PC (page Clients).</p>`:t.annule?"":`<div class="note sm" style="margin-top:8px">Pour modifier depuis le téléphone, mettez à jour la caisse du PC (version 2.2).</div>`}`);return}
+ opsSheet(t.n?"Ticket n° "+t.n:"Ticket",head,ops)}
 function bindSheetTickets(){$$("#dsheet [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk))}
 /* ---------- objectifs (jour et mois) ----------
    Heures d'ouverture : lundi-vendredi 9h-17h (8 h), samedi 9h-12h (3 h), dimanche et jours fériés fermés.
@@ -222,6 +224,36 @@ function editObj(){const O=objMois(),now=new Date(),mn=(m=>m[0].toUpperCase()+m.
  $("#o_save").onclick=async()=>{const ca=parseAmt($("#o_ca").value),mg=parseAmt($("#o_mg").value),mo=parseInt(String($("#o_mo").value).replace(/\D/g,""),10);
   if(!(ca>0)||!(mg>=0)||!(mo>=0)){$("#o_err").textContent="Vérifiez les montants (chiffres uniquement, ou 70M).";return}
   try{await FBX.set("objectifs/"+curYM(),{ca,marge:mg,motos:mo,par:USER.email,ts:Date.now()});closeSheet();toast("Objectifs enregistrés")}catch(e){toast("Enregistrement impossible : vérifiez internet",4000)}}}
+/* ---------- modifications par le gérant (envoyées à la caisse, appliquées par le PC) ---------- */
+let MODS={};try{MODS=JSON.parse(localStorage.getItem("dg_mods")||"{}")}catch(e){}
+function modState(id){const m=E&&E.modifs&&E.modifs[id];if(m)return"appliquee";return MODS[id]||""}
+function modTag(id){const s=modState(id);return s==="appliquee"?tag("modifié par le gérant","g"):s==="annul"?tag("annulation envoyée","w"):s?tag("modification envoyée","w"):""}
+function canEdit(){return!!(E&&E.listes)}
+function opRow(o,k){return`<div class="li" style="flex-wrap:wrap"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${esc(o.mode||"")}${o.cat?" · "+esc(o.cat):""}${o.tiers?" · "+esc(o.tiers):""}</small>${modTag(o.id)?`<span class="tgs">${modTag(o.id)}</span>`:""}</span><b class="${o.type==="S"?"red":""}">${o.type==="S"?"−":""}${fmtN(o.m)}</b>
+ ${canEdit()?`<div class="opb"><button class="b2 ghost" data-mod="${k}">Modifier</button><button class="b2 ghost dng" data-anl="${k}">Annuler</button></div>`:""}</div>`}
+let OPS_CTX=[];
+function bindOps(){$$("#dsheet [data-mod]").forEach(b=>b.onclick=()=>editOp(OPS_CTX[+b.dataset.mod]));$$("#dsheet [data-anl]").forEach(b=>b.onclick=()=>cancelOpTel(OPS_CTX[+b.dataset.anl]))}
+function opsSheet(title,head,ops){OPS_CTX=ops;openSheet(title,head+`<div class="card list" style="margin-top:8px">${ops.map(opRow).join("")||`<p class="mute pad">—</p>`}</div>
+ ${canEdit()?`<p class="s" style="margin:4px 0 0">Chaque changement est envoyé à la caisse avec ton motif et reste visible dans l'Historique du PC.</p>`:`<div class="note sm" style="margin-top:8px">Pour modifier depuis le téléphone, mettez à jour la caisse du PC (version 2.2).</div>`}`);bindOps()}
+function editOp(o){if(!o)return;const L=E.listes,isS=o.type==="S";
+ openSheet("Modifier l'opération",`<p class="s" style="margin:0">${esc(o.lib)} · ${fmtN(o.m)} Ar</p>
+ <label class="fl">Libellé<input id="e_l" value="${esc(o.lib)}" maxlength="200"></label>
+ <label class="fl">Montant (Ar)<input id="e_m" inputmode="decimal" value="${fmtN(o.m)}"><small>Ex. 2 500 000 ou 2,5M</small></label>
+ <label class="fl">Mode de paiement<select id="e_p">${L.modes.map(m=>`<option ${m===o.mode?"selected":""}>${esc(m)}</option>`).join("")}</select></label>
+ <label class="fl">Catégorie<select id="e_c">${(isS?L.S:L.E).map(c=>`<option ${c===o.cat?"selected":""}>${esc(c)}</option>`).join("")}${(isS?L.S:L.E).includes(o.cat)?"":`<option selected>${esc(o.cat)}</option>`}</select></label>
+ <label class="fl">${isS?"Bénéficiaire":"Client"}<input id="e_t" value="${esc(o.tiers||"")}" maxlength="80"></label>
+ <label class="fl">Motif de la modification (obligatoire)<input id="e_mo" placeholder="Ex. erreur de saisie du caissier" maxlength="200"></label>
+ <div id="e_err" class="red sm" role="alert"></div><button class="b2 yes full" id="e_ok">Envoyer la modification</button>`);
+ $("#e_ok").onclick=async()=>{const mo=$("#e_mo").value.trim(),m=parseAmt($("#e_m").value);
+  if(mo.length<3){$("#e_err").textContent="Indiquez le motif de la modification.";$("#e_mo").focus();return}
+  if(!(m>0)){$("#e_err").textContent="Montant invalide.";$("#e_m").focus();return}
+  const ch={},nv={libelle:$("#e_l").value.trim(),montant:m,mode:$("#e_p").value,cat:$("#e_c").value,tiers:$("#e_t").value.trim()},av={libelle:o.lib,montant:o.m,mode:o.mode,cat:o.cat,tiers:o.tiers||""};
+  Object.keys(nv).forEach(k=>{if(String(nv[k])!==String(av[k])&&!(k==="libelle"&&!nv[k]))ch[k]=nv[k]});
+  if(!Object.keys(ch).length){$("#e_err").textContent="Rien n'a été changé.";return}
+  MODS[o.id]="modif";localStorage.setItem("dg_mods",JSON.stringify(MODS));
+  await sendCmd({type:"modif",id:o.id,champs:ch,motif:mo});closeSheet();render();toast(navigator.onLine?"Modification envoyée à la caisse":"Modification enregistrée : elle partira au retour du réseau",3500)}}
+async function cancelOpTel(o){if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? Si c'est une vente, tout le ticket est annulé et le stock remis.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;
+ MODS[o.id]="annul";localStorage.setItem("dg_mods",JSON.stringify(MODS));await sendCmd({type:"annulation",id:o.id,motif:r===true?"":r});closeSheet();render();toast("Annulation envoyée à la caisse")}
 function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
