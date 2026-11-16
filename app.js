@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="2.9 · 16/11";
+const APP_VERSION="2.10 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -75,7 +75,7 @@ function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x
  ${E.refusees?`<div class="ar"><i class="ic r">${ic(WARN)}</i><span class="grow"><b>${E.refusees} vente(s) refusée(s)</b><small>pas encore régularisée(s) au magasin</small></span></div>`:""}
  ${late.length?`<button class="ar" data-go="dettes"><i class="ic r">${ic(CLOCK)}</i><span class="grow"><b>${late.length} dette${late.length>1?"s":""} en retard</b><small>${esc(late.slice(0,2).map(x=>x.tiers).join(", "))} · ${fmtN(late.reduce((s,x)=>s+x.reste,0))}</small></span>${ic(CHEV)}</button>`:""}
  ${E.stock.faible.length?`<button class="ar" data-go="plus"><i class="ic a">${ic(BOX)}</i><span class="grow"><b>Stock faible : ${E.stock.faible.length} article(s)</b><small>${esc(E.stock.faible.slice(0,2).map(i=>i.nom).join(", "))}</small></span>${ic(CHEV)}</button>`:""}</section>`:""}
- <div class="sec"><h2>Tickets du jour</h2></div><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small></span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
+ <div class="sec"><h2>Tickets du jour</h2></div><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small>${t.annule?`<span class="tgs">${tag("annulé","r")}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
  <div class="sec"><h2>Dépenses du jour</h2></div><section class="card list">${j.depensesListe.map(o=>`<button class="li tap" data-sh="depenses"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${o.h} · ${esc(o.cat)}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="red">−${fmtN(o.m)}</b></button>`).join("")||`<p class="mute pad">Aucune dépense.</p>`}</section>`}
 function vValider(){const L=E.validations;if(!L.length)return`<div class="empty">Aucune vente à valider. Tout est en ordre.</div>`;
  return L.map(v=>{const prix=v.lignes.reduce((s,l)=>s+l.prix,0),mn=v.lignes.reduce((s,l)=>s+l.minimum,0),ct=v.lignes.reduce((s,l)=>s+l.cout,0),sent=SENT[v.cle];
