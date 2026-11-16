@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.0 · 16/11";
+const APP_VERSION="3.1 · 16/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -58,7 +58,7 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Ce que les clients doivent","Dettes clients"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"]};
  const T=titles[TAB];
  $("#app").innerHTML=`<header class="mh"><div class="hl"><div class="lg" aria-hidden="true">DMS</div><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
- <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne · ":""}Caisse ${ago(E.maj)}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
+ <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne":"Caisse · "+ago(E.maj).replace("il y a ","").replace("à l'instant","maintenant")}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
  ${old&&!off?`<div class="warnbar" role="status">La caisse n'a rien envoyé depuis ${ago(E.maj).replace("il y a ","")} : PC éteint, logiciel fermé ou pas d'internet au magasin.</div>`:""}
  <main class="body">${({jour:vJour,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
  <nav class="tabs" aria-label="Menu">${TABS.map(([k,l,p])=>`<button class="${k===TAB?"on":""}" data-t="${k}" ${k===TAB?'aria-current="page"':""}><span class="pill">${ic(p)}${k==="valider"&&nV?`<em>${nV}</em>`:""}</span>${l}</button>`).join("")}</nav>`;
@@ -71,7 +71,7 @@ function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const m
 const lrow=(k,l,v,cls)=>`<button class="lr" data-sh="${k}"><span>${l}</span><b class="${cls||""}">${v}</b>${ic(CHEV)}</button>`;
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard),nA=(nV?1:0)+(E.refusees?1:0)+(late.length?1:0)+(E.stock.faible.length?1:0);
  return`<button class="card hero tap" data-sh="ventes"><div class="ht"><div><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
- <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule&&!t.ancienne).length} ticket(s)</span></div>${j.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes saisies ce jour : ${fmtN(j.anciennes)} Ar</div>`:""}</div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
+ <div class="leg"><span>${j.motos} moto${j.motos>1?"s":""} · ${j.tickets.filter(t=>!t.annule&&!t.ancienne).length} ticket(s)</span></div>${j.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(j.anciennes)} Ar</div>`:""}</div>${j.cloture?tag("Clôturée","g"):hoursOf(new Date())?tag("Journée ouverte","w"):tag("Boutique fermée")}</div>${spark()}</button>
  ${vObjJour()}
  <section class="card list" aria-label="Résumé">${lrow("encaisse","Encaissé",fmtN(j.encaisse))}${lrow("depenses","Dépenses",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}${lrow("credit","À crédit",fmtN(j.credit))}${lrow("soldes","Espèces attendues",fmtN(j.especes))}${lrow("marge","Marge estimée",j.marge==null?"—":fmtN(j.marge))}${lrow("cloture","Clôture",j.cloture?(j.cloture.ecart?"Écart "+fmtN(j.cloture.ecart):"Caisse juste"):"Pas encore faite",j.cloture?(j.cloture.ecart?"red":""):"amb")}</section>
  ${nA?`<div class="sec"><h2>À traiter</h2>${tag(nA,"r")}</div><section class="card list" aria-label="À traiter">
@@ -107,7 +107,7 @@ function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><d
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
- ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes saisies ce mois : ${fmtN(m.anciennes)} Ar.</div>`:""}</section>
+ ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}</section>
  
  <section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
@@ -210,9 +210,9 @@ function gaugeRow(lbl,k,val,goal,expect,extra){if(!goal)return"";const pct=Math.
 function vObjJour(){const now=new Date(),hT=hoursOf(now);if(!E)return"";const O=objMois(),j=E.jour,m=E.mois;
  if(!hT)return`<section class="card obj"><div class="ct"><b>Objectifs du jour</b><button class="lk" data-objedit>Modifier</button></div><p class="mute sm" style="margin:0">Boutique fermée aujourd'hui (${now.getDay()===0?"dimanche":"jour férié"}). Pas d'objectif.</p></section>`;
  const hB=hoursBefore(now),rest=O.H-hB,frac=elapsedToday(now)/hT,R=k=>{const done=(k==="motos"?m.motos-j.motos:k==="ca"?m.ca-j.ventes:(m.marge==null?0:m.marge)-(j.marge||0)),g=O[k];return{fixe:g*hT/O.H,ratt:rest>0?Math.max(0,g-done)*hT/rest:0}};
- const row=(lbl,k,val)=>{const r=R(k),tgt=Math.max(r.fixe,r.ratt),unit=k==="motos"?"":" Ar";return gaugeRow(lbl,k,val,tgt,tgt*frac,Math.abs(r.ratt-r.fixe)>(k==="motos"?0.05:1000)?`Fixe ${fmtQ(r.fixe,k)}${unit} · pour rattraper ${fmtQ(r.ratt,k)}${unit}`:`Fixe ${fmtQ(r.fixe,k)}${unit}`)};
+ const row=(lbl,k,val)=>{const r=R(k),tgt=Math.max(r.fixe,r.ratt),unit=k==="motos"?"":" Ar";return gaugeRow(lbl,k,val,tgt,tgt*frac,Math.abs(r.ratt-r.fixe)>(k==="motos"?0.05:1000)?`Prévu ${fmtQ(r.fixe,k)}${unit} · pour tenir le mois : ${fmtQ(r.ratt,k)}${unit}`:`Prévu ${fmtQ(r.fixe,k)}${unit}`)};
  return`<section class="card obj" aria-label="Objectifs du jour"><div class="ct"><b>Objectifs du jour</b><button class="lk" data-objedit>${O.prop?"Proposés · modifier":"Modifier"}</button></div>
- <p class="s" style="margin:-2px 0 8px">${now.getDay()===6?"Samedi 9h–12h":"9h–17h"} · ${Math.round(frac*100)} % de la journée écoulée · le trait montre où il faudrait en être maintenant</p>
+ <p class="s" style="margin:-2px 0 8px">${now.getDay()===6?"Samedi 9h–12h":"9h–17h"} · ${Math.round(frac*100)} % de la journée passée · trait : niveau attendu</p>
  ${row("Ventes","ca",j.ventes)}${row("Marge","marge",j.marge==null?0:j.marge)}${row("Motos","motos",j.motos)}
  ${j.marge==null&&j.ventes?`<p class="s" style="margin:6px 0 0">Marge du jour inconnue : coûts d'achat non renseignés.</p>`:""}</section>`}
 function vObjMois(){if(!E)return"";const now=new Date(),O=objMois(),m=E.mois,hB=hoursBefore(now)+elapsedToday(now),fr=O.H?hB/O.H:0,left=workDaysLeft(now)-(elapsedToday(now)>=hoursOf(now)&&hoursOf(now)?1:0);
