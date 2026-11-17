@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.3 · 17/11";
+const APP_VERSION="3.4 · 17/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -144,7 +144,7 @@ function vPlus(){const dark=document.documentElement.dataset.theme!=="light";
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand("copy")}catch(x){}a.remove();return ok}}
 function curTheme(){try{return localStorage.getItem("dg_theme")||"auto"}catch(e){return"auto"}}
 function applyTheme(){const p=curTheme(),light=p==="light"||(p==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches);
- if(light)document.documentElement.dataset.theme="light";else delete document.documentElement.dataset.theme;const m=$('meta[name="theme-color"]');if(m)m.content=light?"#f5f6f8":"#04110a"}
+ if(light)document.documentElement.dataset.theme="light";else delete document.documentElement.dataset.theme;const m=$('meta[name="theme-color"]');if(m)m.content=light?"#f5f6f8":"#09090b"}
 function setTheme(t){try{localStorage.setItem("dg_theme",t)}catch(e){}applyTheme();render()}
 try{matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{applyTheme();if(USER)render()})}catch(e){}applyTheme();
 /* ---------- panneaux de détail (clic sur une carte) ---------- */
