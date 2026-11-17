@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.6 · 17/11";
+const APP_VERSION="3.7 · 17/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -141,11 +141,32 @@ function vCaisse(){const S=Object.entries(E.soldes||{}),tot=S.reduce((a,[,v])=>a
  <section class="card list" aria-label="Soldes par mode">${S.map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b class="${v<0?"red":""}">${fmtN(v)}</b></div>`).join("")}</section>
  <h2>Nouvelle opération</h2>
  <section class="cag">${act("depot","Déposer à la banque","Espèces → banque",'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>')}${act("retrait","Retirer de la banque","Banque → espèces",'<path d="M12 20V8M7 13l5-5 5 5M4 4h16"/>')}
- ${act("transfert","Transfert","Entre deux modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
+ ${act("transfert","Transfert","Entre deux modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("banque","Opération bancaire","Virement, loyer, frais…",'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
  ${OPS.length?`<h2>Envoyé à la caisse</h2><section class="card list">${OPS.slice().reverse().map(o=>`<div class="lr"><span>${esc(o.lib)}<small class="mute" style="display:block;font-size:12px">${new Date(o.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · ${o.ts<E.maj?"enregistré par la caisse":"en attente de la caisse"}</small></span><b>${fmtN(o.m)}</b></div>`).join("")}</section>`:""}
  <section class="card list">${lrow("encaisse","Encaissé aujourd'hui",fmtN(j.encaisse))}${lrow("depenses","Sorties aujourd'hui",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}</section>
  <p class="s pad">Les opérations sont enregistrées par la caisse dès que le PC est connecté. Elles apparaissent dans l'historique de la caisse avec la mention « téléphone ».</p>`}
-function opForm(k){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m)),esp=M.find(m=>/esp/i.test(m))||M[0];
+function bankForm(){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m));
+ const exS=["Transfert envoyé","Ajustement de solde (−)"],exE=/^Vente|Acompte|Ajustement|Transfert reçu|Règlement dette/;
+ const opt=(arr,v)=>arr.map(m=>`<option ${m===v?"selected":""}>${esc(m)}</option>`).join("");
+ const pick=(arr,re)=>arr.find(c=>re.test(c))||"";
+ openSheet("Opération bancaire",`<div class="seg2" role="tablist"><button class="on" data-s="S">Paiement émis</button><button data-s="E">Virement reçu</button></div>
+ <label class="fl">Banque<select id="b_m">${opt(bank.length?bank:M,bank[0])}</select></label>
+ <label class="fl">Type<select id="b_c"></select></label>
+ <label class="fl"><span id="b_tl">Bénéficiaire</span><input id="b_t" maxlength="80" placeholder="Ex. fournisseur, propriétaire…"></label>
+ <label class="fl">Montant (Ar)<input id="b_a" inputmode="decimal" placeholder="Ex. 2 500 000 ou 2,5M"></label>
+ <label class="fl">Libellé (obligatoire)<input id="b_l" maxlength="200" placeholder="Ex. virement fournisseur pièces, loyer novembre"></label>
+ <label class="fl">N° de virement / chèque<input id="b_r" maxlength="80"></label>
+ <div id="b_err" class="red sm" role="alert"></div><button class="b2 yes full" id="b_ok">Envoyer à la caisse</button>`);
+ let sens="S";const fill=()=>{const C=sens==="S"?L.S.filter(c=>!exS.includes(c)):L.E.filter(c=>!exE.test(c));$("#b_c").innerHTML=opt(C,sens==="S"?pick(C,/fournisseur|achat/i):pick(C,/apport|divers|autre/i));
+  $("#b_tl").textContent=sens==="S"?"Bénéficiaire":"Payé par";$("#b_t").placeholder=sens==="S"?"Ex. fournisseur, propriétaire…":"Ex. client, revendeur…"};
+ $$(".seg2 button").forEach(b=>b.onclick=()=>{sens=b.dataset.s;$$(".seg2 button").forEach(x=>x.classList.toggle("on",x===b));fill()});fill();
+ $("#b_ok").onclick=async()=>{const a=parseAmt($("#b_a").value),lib=$("#b_l").value.trim(),err=t=>{$("#b_err").textContent=t};
+  if(!(a>0))return err("Montant invalide.");if(lib.length<3)return err("Précisez le libellé.");
+  const c={type:"operation",genre:sens==="S"?"sortie":"entree",cat:$("#b_c").value,mode:$("#b_m").value,montant:a,libelle:lib,tiers:$("#b_t").value.trim(),ref:$("#b_r").value.trim()};
+  if(!(await ask(`${sens==="S"?"Paiement depuis":"Virement reçu sur"} ${c.mode} : ${fmtN(a)} Ar (${c.cat}). Confirmer ?`,"Envoyer")))return;
+  await sendCmd(c);OPS.push({ts:Date.now(),lib:lib+" · "+c.mode,m:sens==="S"?-a:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
+  toast(navigator.onLine?"Envoyé à la caisse":"Enregistré : partira au retour du réseau",3500)}}
+function opForm(k){if(k==="banque")return bankForm();const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m)),esp=M.find(m=>/esp/i.test(m))||M[0];
  const sel=(id,arr,v)=>`<select id="${id}">${arr.map(m=>`<option ${m===v?"selected":""}>${esc(m)}</option>`).join("")}</select>`;
  const exS=["Transfert envoyé","Ajustement de solde (−)"],exE=/^Vente|Règlement dette|Acompte|Ajustement|Transfert reçu/;
  const tr=k==="depot"||k==="retrait"||k==="transfert",title={depot:"Déposer à la banque",retrait:"Retirer de la banque",transfert:"Transfert entre modes",sortie:"Dépense / sortie d'argent",entree:"Entrée d'argent"}[k];
