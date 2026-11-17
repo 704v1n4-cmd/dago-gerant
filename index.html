@@ -143,23 +143,23 @@ button.li.strike,.li.strike{opacity:.55}button.li.strike b,button.li.strike smal
 /* v3 : Inter Tight (titres, montants) + Inter (texte), palette Dago */
 @font-face{font-family:"Inter Tight";src:url(inter-tight-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:"Inter Tight";src:url(inter-tight-latin-800-normal.woff2) format("woff2");font-weight:800;font-display:swap}
-:root{--accent:#96ff1a;--onaccent:#0c0a09;--forest:#18181b;--leaf:#a1a1aa}
+:root{--accent:#71f331;--onaccent:#0c0a09;--forest:#18181b;--leaf:#a1a1aa}
 html[data-theme=light]{--aline:#18181b;--navon:#18181b;--chart:#18181b;--good:#15803d;--bg:#f5f5f4;--line:#e7e5e4;--mute:#78716c;--ink:#0c0a09}
 html,body{font-family:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 .mh h1,h2.sh-t,.hero .v,.k2 .v,.big,.logo,.lg,.dc .top b,.cmp b,.vc h3,.dt b:last-child{font-family:"Inter Tight",Inter,sans-serif}
 .hero .v,.big{font-weight:800;letter-spacing:-.02em}
 html[data-theme=light] .hero:not(.g4){background:var(--forest)!important;border-color:var(--forest)!important;color:#fff}
 html[data-theme=light] .hero:not(.g4) .l,html[data-theme=light] .hero:not(.g4) .s,html[data-theme=light] .hero:not(.g4) .leg,html[data-theme=light] .hero:not(.g4) small{color:var(--leaf)!important}
-.lg,.logo{background:#96ff1a!important;color:#0c0a09!important}
+.lg,.logo{background:#71f331!important;color:#0c0a09!important}
 
 /* v3.1 : alignements */
 .hr .sync{white-space:nowrap;max-width:none;font-size:12.5px;line-height:1;text-align:left;padding:8px 12px!important;border-radius:99px;background:var(--card)!important;border:1px solid var(--line);color:var(--sub)}
 .hr .sync:before{flex:none}
 .gs{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px}
 html[data-theme=light] .hero:not(.g4) .spark i{background:rgba(255,255,255,.16)}
-html[data-theme=light] .hero:not(.g4) .spark i.on{background:#96ff1a}
+html[data-theme=light] .hero:not(.g4) .spark i.on{background:#71f331}
 html[data-theme=light] .hero:not(.g4) .spark span{color:#bfe6a3}
-.hero .tag.g{background:#96ff1a;color:#0c0a09}
+.hero .tag.g{background:#71f331;color:#0c0a09}
 
 /* v3.2 : chiffres clés en grille, courbe du mois, mode sombre Dago */
 .kg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -173,13 +173,17 @@ html[data-theme=light] .hero:not(.g4) .spark span{color:#bfe6a3}
 .cum .cd{fill:var(--chart);stroke:var(--card);stroke-width:2}.cum .ctx{font:600 10.5px Inter,sans-serif;fill:var(--mute)}
 .leg2{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:6px}.leg2 i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .leg2 .la{background:var(--chart)}.leg2 .lt{background:var(--mute)}.okc{color:var(--good);font-weight:700}.amb{font-weight:700}
-html:not([data-theme=light]){--bg:#09090b;--card:#141416;--card2:#1c1c1f;--line:#27272a;--mute:#a1a1aa;--sub:#d4d4d8;--ink:#fafafa;--field:#09090b;--barm:#27272a;--hero:#18181b;--onhero:#fff;--goodbg:#14261a;--accent:#96ff1a;--chart:#96ff1a;--aline:#96ff1a;--navon:#96ff1a}
+html:not([data-theme=light]){--bg:#09090b;--card:#141416;--card2:#1c1c1f;--line:#27272a;--mute:#a1a1aa;--sub:#d4d4d8;--ink:#fafafa;--field:#09090b;--barm:#27272a;--hero:#18181b;--onhero:#fff;--goodbg:#14261a;--accent:#71f331;--chart:#71f331;--aline:#71f331;--navon:#71f331}
 .hero .v{white-space:nowrap;font-size:clamp(26px,8.6vw,38px)}.hero .ht>*:first-child{min-width:0}.hero .tag{flex:none}.hero .v small{font-size:.45em}
 html[data-theme=light] .hero:not(.g4) .spark span{color:#a1a1aa!important}
+/* 3.5 : logo Dago Moto Shop */
+:root{--accent:#71f331}
+img.lg{width:44px;height:44px;border-radius:12px;background:none!important;padding:0;object-fit:contain;display:block}
+img.logo.big{width:150px;height:auto;background:#0c0a09!important;padding:18px 20px;border-radius:22px;box-sizing:content-box;display:block;margin:0 auto 14px}
 </style>
 </head>
 <body>
-<div id="app"><div class="login"><div class="lbox"><div class="logo">DMS</div><p>Chargement de l'app…</p><p class="mute sm" id="bootmsg"></p><button class="b2 ghost full" id="bootfix" hidden>Réparer l'app (vider le cache)</button></div></div></div><div id="toasts" aria-live="polite"></div>
+<div id="app"><div class="login"><div class="lbox"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><p>Chargement de l'app…</p><p class="mute sm" id="bootmsg"></p><button class="b2 ghost full" id="bootfix" hidden>Réparer l'app (vider le cache)</button></div></div></div><div id="toasts" aria-live="polite"></div>
 <script>
 /* Si l'app ne démarre pas : afficher l'erreur et proposer de vider le cache. */
 window.DG_BOOT={ok:false,err:""};

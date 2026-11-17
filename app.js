@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.4 · 17/11";
+const APP_VERSION="3.5 · 17/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -22,7 +22,7 @@ function ask(msg,ok,reason){return new Promise(res=>{const bg=document.createEle
  setTimeout(()=>{const t=bg.querySelector("textarea");if(t)t.focus()},50)})}
 
 /* ---------- démarrage ---------- */
-(async()=>{if(!window.DG_CONFIG||!DG_CONFIG.apiKey&&FBX.kind!=="mock"){$("#app").innerHTML=`<div class="login"><div class="lbox"><div class="logo">DMS</div><h1>App Gérant</h1><p>La configuration Firebase n'est pas encore installée (fichier config.js).</p></div></div>`;return}
+(async()=>{if(!window.DG_CONFIG||!DG_CONFIG.apiKey&&FBX.kind!=="mock"){$("#app").innerHTML=`<div class="login"><div class="lbox"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><h1>App Gérant</h1><p>La configuration Firebase n'est pas encore installée (fichier config.js).</p></div></div>`;return}
  const NOP=(()=>{try{return localStorage.getItem("dg_nopersist")==="1"}catch(e){return true}})();
  /* Secours : si rien ne s'affiche (stockage du téléphone bloqué), on redémarre une fois sans le cache hors ligne. */
  const fallback=()=>{if(NOP)return;try{localStorage.setItem("dg_nopersist","1")}catch(e){}location.reload()};
@@ -39,7 +39,7 @@ async function majRelay(){/* publie la dernière version de la caisse (maj/derni
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
 const EYE='<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
-function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<div class="login"><form class="lbox" id="lf"><div class="logo">DMS</div><h1>Dago Moto Shop</h1><p class="mute">App Gérant · version ${APP_VERSION}</p>
+function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<div class="login"><form class="lbox" id="lf"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><h1>App Gérant</h1><p class="mute">Version ${APP_VERSION}</p>
  <label>E-mail<input id="le" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(localStorage.getItem("dg_email")||"")}"></label>
  <label>Mot de passe<span class="pw"><input id="lp" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"><button type="button" class="eye" id="lv" aria-label="Afficher le mot de passe">${ic(EYE)}</button></span></label>
  <button class="b2 yes" type="submit">Se connecter</button></form></div>`;
@@ -52,12 +52,12 @@ const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const SRCH=
 let DF="tout";
 function pending(){return E?E.validations.filter(v=>!SENT[v.cle]):[]}
 function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$(".body")?$(".body").scrollTop:0;
- if(!E){$("#app").innerHTML=`<div class="login"><div class="lbox"><div class="logo">DMS</div><p>${navigator.onLine?"Chargement des données de la caisse…":"Pas de connexion internet. Les données apparaîtront dès que le téléphone sera connecté."}</p><p class="mute sm">Si rien n'arrive : vérifiez que la caisse est allumée et liée (Réglages › Téléphone et cloud).</p><p class="s">App version ${APP_VERSION}</p><button class="lnk" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut();return}
+ if(!E){$("#app").innerHTML=`<div class="login"><div class="lbox"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><p>${navigator.onLine?"Chargement des données de la caisse…":"Pas de connexion internet. Les données apparaîtront dès que le téléphone sera connecté."}</p><p class="mute sm">Si rien n'arrive : vérifiez que la caisse est allumée et liée (Réglages › Téléphone et cloud).</p><p class="s">App version ${APP_VERSION}</p><button class="lnk" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut();return}
  const off=!navigator.onLine||META.fromCache,old=Date.now()-E.maj>15*60000,nV=pending().length;
  const mois=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[+E.mois.m.slice(5)-1]);
  const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Ce que les clients doivent","Dettes clients"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"]};
  const T=titles[TAB];
- $("#app").innerHTML=`<header class="mh"><div class="hl"><div class="lg" aria-hidden="true">DMS</div><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
+ $("#app").innerHTML=`<header class="mh"><div class="hl"><img class="lg" src="icone-dago.svg" alt="" aria-hidden="true"><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
  <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne":"Caisse · "+ago(E.maj).replace("il y a ","").replace("à l'instant","maintenant")}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
  ${old&&!off?`<div class="warnbar" role="status">La caisse n'a rien envoyé depuis ${ago(E.maj).replace("il y a ","")} : PC éteint, logiciel fermé ou pas d'internet au magasin.</div>`:""}
  <main class="body">${({jour:vJour,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
