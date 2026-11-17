@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.5 · 17/11";
+const APP_VERSION="3.6 · 17/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -46,7 +46,7 @@ function loginScreen(){window.DG_BOOT&&(DG_BOOT.ok=true);$("#app").innerHTML=`<d
  $("#lv").onclick=()=>{const p=$("#lp");p.type=p.type==="password"?"text":"password"};$("#lf").onsubmit=async e=>{e.preventDefault();const em=$("#le").value.trim().toLowerCase();try{await FBX.signIn(em,$("#lp").value.trim());localStorage.setItem("dg_email",em)}catch(x){toast(/invalid|wrong|not-found/.test(String(x.code||x.message))?"E-mail ou mot de passe incorrect":"Connexion impossible : vérifiez internet",4000)}}}
 
 /* ---------- affichage ---------- */
-const TABS=[["jour","Jour",'<path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/>'],["valider","Valider",'<path d="m5 12 5 5 9-10"/>'],["dettes","Dettes",'<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 11h5M19.5 8.5v5"/>'],["mois","Mois",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],["plus","Plus",'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>']];
+const TABS=[["jour","Jour",'<path d="M3 11 12 4l9 7v9h-6v-6H9v6H3z"/>'],["caisse","Caisse",'<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M6 15h4"/>'],["dettes","Dettes",'<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 11h5M19.5 8.5v5"/>'],["mois","Mois",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],["plus","Plus",'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'],["valider","Valider",'<path d="m5 12 5 5 9-10"/>']];
 const ic=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const SRCH='<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>';const CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',BOX='<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>';const WARN='<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.5v.5"/>',CHEV='<path d="m9 6 6 6-6 6"/>',MSG='<path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/>';
 let DF="tout";
@@ -55,12 +55,12 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  if(!E){$("#app").innerHTML=`<div class="login"><div class="lbox"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><p>${navigator.onLine?"Chargement des données de la caisse…":"Pas de connexion internet. Les données apparaîtront dès que le téléphone sera connecté."}</p><p class="mute sm">Si rien n'arrive : vérifiez que la caisse est allumée et liée (Réglages › Téléphone et cloud).</p><p class="s">App version ${APP_VERSION}</p><button class="lnk" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut();return}
  const off=!navigator.onLine||META.fromCache,old=Date.now()-E.maj>15*60000,nV=pending().length;
  const mois=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[+E.mois.m.slice(5)-1]);
- const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Ce que les clients doivent","Dettes clients"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"]};
+ const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Ce que les clients doivent","Dettes clients"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"],caisse:["","Soldes et opérations","Caisse"]};
  const T=titles[TAB];
  $("#app").innerHTML=`<header class="mh"><div class="hl"><img class="lg" src="icone-dago.svg" alt="" aria-hidden="true"><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
  <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne":"Caisse · "+ago(E.maj).replace("il y a ","").replace("à l'instant","maintenant")}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
  ${old&&!off?`<div class="warnbar" role="status">La caisse n'a rien envoyé depuis ${ago(E.maj).replace("il y a ","")} : PC éteint, logiciel fermé ou pas d'internet au magasin.</div>`:""}
- <main class="body">${({jour:vJour,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
+ <main class="body">${({jour:vJour,caisse:vCaisse,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
  <nav class="tabs" aria-label="Menu">${TABS.map(([k,l,p])=>`<button class="${k===TAB?"on":""}" data-t="${k}" ${k===TAB?'aria-current="page"':""}><span class="pill">${ic(p)}${k==="valider"&&nV?`<em>${nV}</em>`:""}</span>${l}</button>`).join("")}</nav>`;
  $$("[data-t]").forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render();$(".body").scrollTop=0});
  bind();const bd=$(".body");if(bd&&sy)bd.scrollTop=sy}
@@ -132,6 +132,39 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  <section class="card"><div class="ct"><b>Plus grosses sorties</b></div>${hbars(m.depCat)||`<p class="mute pad">—</p>`}
  <div class="s" style="margin-top:10px">Retraits des associés ${fmtN(m.retraits)} · camion à refacturer ${fmtN(m.camion)} (hors charges)</div></section>
  <h2>Soldes</h2><section class="card list">${Object.entries(E.soldes).map(([k,v])=>`<div class="li"><span class="grow">${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</section>`}
+/* ---------- Caisse : soldes + opérations du gérant (transfert, dépôt, retrait banque, dépense, entrée) ---------- */
+let OPS=JSON.parse(localStorage.getItem("dg_ops")||"[]");
+function vCaisse(){const S=Object.entries(E.soldes||{}),tot=S.reduce((a,[,v])=>a+v,0),j=E.jour,now=Date.now();
+ OPS=OPS.filter(o=>now-o.ts<24*3600e3);
+ const act=(k,l,sub,p)=>`<button class="ca" data-op="${k}"><span class="ci">${ic(p)}</span><span><b>${l}</b><small>${sub}</small></span></button>`;
+ return`<section class="card hero"><div class="l">Total en caisse et en banque</div><div class="v">${fmtN(tot)} <small>Ar</small></div><div class="s">Espèces attendues dans le tiroir : ${fmtN(j.especes)} Ar</div></section>
+ <section class="card list" aria-label="Soldes par mode">${S.map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b class="${v<0?"red":""}">${fmtN(v)}</b></div>`).join("")}</section>
+ <h2>Nouvelle opération</h2>
+ <section class="cag">${act("depot","Déposer à la banque","Espèces → banque",'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>')}${act("retrait","Retirer de la banque","Banque → espèces",'<path d="M12 20V8M7 13l5-5 5 5M4 4h16"/>')}
+ ${act("transfert","Transfert","Entre deux modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
+ ${OPS.length?`<h2>Envoyé à la caisse</h2><section class="card list">${OPS.slice().reverse().map(o=>`<div class="lr"><span>${esc(o.lib)}<small class="mute" style="display:block;font-size:12px">${new Date(o.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · ${o.ts<E.maj?"enregistré par la caisse":"en attente de la caisse"}</small></span><b>${fmtN(o.m)}</b></div>`).join("")}</section>`:""}
+ <section class="card list">${lrow("encaisse","Encaissé aujourd'hui",fmtN(j.encaisse))}${lrow("depenses","Sorties aujourd'hui",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}</section>
+ <p class="s pad">Les opérations sont enregistrées par la caisse dès que le PC est connecté. Elles apparaissent dans l'historique de la caisse avec la mention « téléphone ».</p>`}
+function opForm(k){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m)),esp=M.find(m=>/esp/i.test(m))||M[0];
+ const sel=(id,arr,v)=>`<select id="${id}">${arr.map(m=>`<option ${m===v?"selected":""}>${esc(m)}</option>`).join("")}</select>`;
+ const exS=["Transfert envoyé","Ajustement de solde (−)"],exE=/^Vente|Règlement dette|Acompte|Ajustement|Transfert reçu/;
+ const tr=k==="depot"||k==="retrait"||k==="transfert",title={depot:"Déposer à la banque",retrait:"Retirer de la banque",transfert:"Transfert entre modes",sortie:"Dépense / sortie d'argent",entree:"Entrée d'argent"}[k];
+ const de=k==="retrait"?(bank[0]||M[1]):esp,vers=k==="depot"?(bank[0]||M[1]):k==="retrait"?esp:M[1];
+ openSheet(title,`${tr?`<label class="fl">De${sel("o_de",k==="retrait"?bank.length?bank:M:k==="depot"?[esp]:M,de)}</label><label class="fl">Vers${sel("o_vers",k==="depot"?bank.length?bank:M:k==="retrait"?[esp]:M,vers)}</label>`
+  :`<label class="fl">Catégorie${sel("o_c",k==="sortie"?L.S.filter(c=>!exS.includes(c)):L.E.filter(c=>!exE.test(c)),"")}</label><label class="fl">${k==="sortie"?"Payé avec":"Reçu en"}${sel("o_m",M,esp)}</label>
+  <label class="fl">${k==="sortie"?"Bénéficiaire":"De la part de"}<input id="o_t" maxlength="80"></label>`}
+ <label class="fl">Montant (Ar)<input id="o_a" inputmode="decimal" placeholder="Ex. 2 500 000 ou 2,5M"></label>
+ <label class="fl">Libellé${k==="sortie"||k==="entree"?" (obligatoire)":""}<input id="o_l" maxlength="200" placeholder="${k==="depot"?"Ex. versement BNI":k==="retrait"?"Ex. retrait pour paiement fournisseur":"Ex. loyer novembre"}"></label>
+ <label class="fl">Réf. (bordereau, reçu…)<input id="o_r" maxlength="80"></label>
+ <div id="o_err" class="red sm" role="alert"></div><button class="b2 yes full" id="o_ok">Envoyer à la caisse</button>`);
+ $("#o_ok").onclick=async()=>{const a=parseAmt($("#o_a").value),lib=$("#o_l").value.trim(),err=t=>{$("#o_err").textContent=t};
+  if(!(a>0))return err("Montant invalide.");
+  let c;if(tr){const x=$("#o_de").value,y=$("#o_vers").value;if(x===y)return err("Choisissez deux modes différents.");c={type:"operation",genre:"transfert",de:x,vers:y,montant:a,libelle:lib,ref:$("#o_r").value.trim()}}
+  else{if(lib.length<3)return err("Précisez le libellé.");c={type:"operation",genre:k==="sortie"?"sortie":"entree",cat:$("#o_c").value,mode:$("#o_m").value,montant:a,libelle:lib,tiers:$("#o_t").value.trim(),ref:$("#o_r").value.trim()}}
+  const txt=tr?`${c.de} → ${c.vers}`:`${c.cat} · ${c.mode}`;
+  if(!(await ask(`${title} : ${fmtN(a)} Ar (${txt}). Confirmer ?`,"Envoyer")))return;
+  await sendCmd(c);OPS.push({ts:Date.now(),lib:(lib||title)+" · "+txt,m:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
+  toast(navigator.onLine?"Envoyé à la caisse":"Enregistré : partira au retour du réseau",3500)}}
 const STL={recue:"Reçue",encours:"En réparation",prete:"Prête",livree:"Livrée"};
 function vPlus(){const dark=document.documentElement.dataset.theme!=="light";
  return`<h2>Envoyer un message à la caisse</h2><section class="card"><label class="sm" for="msg" style="font-weight:600;color:var(--sub)">Message</label><textarea id="msg" rows="3" placeholder="Ex. : Ne pas vendre la Kymco Many sous 2 500 000." style="margin-top:6px"></textarea><button class="b2 yes full" id="sendm">Envoyer</button><p class="mute sm" style="margin:8px 0 0">Le message s'affiche en haut de l'écran de la caisse jusqu'à ce qu'un caissier clique « Lu ».</p></section>
@@ -328,7 +361,7 @@ async function openSearch(){openSheet("Rechercher",`<label class="fl" style="mar
  try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
   $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
  catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
-function bind(){$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
+function bind(){$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
