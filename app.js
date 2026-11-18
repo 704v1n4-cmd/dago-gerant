@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.10 · 18/11";
+const APP_VERSION="3.11 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -374,20 +374,21 @@ async function dayDetail(dd){const iso=E.mois.m+"-"+String(dd).padStart(2,"0"),l
  let B;try{B=await loadBK()}catch(e){$("#dsheet .sb-body,#dsheet .sheet-body")&&0;openSheet(lbl,`<div class="note">Détail indisponible : pas de sauvegarde en ligne lisible (${esc(e.message||e)}).</div>`);return}
  const O=B.ops.map(x=>x.o).filter(o=>o.date===iso&&!o.annule&&!o.ajustement),V=O.filter(o=>o.type==="E"&&/^Vente/.test(o.cat||"")),S=O.filter(o=>o.type==="S"&&!/^Transfert/.test(o.cat||"")),R=O.filter(o=>o.type==="E"&&!/^Vente|^Transfert/.test(o.cat||""));
  const sum=a=>a.reduce((t,o)=>t+(+o.montant||0),0),motos=V.reduce((t,o)=>t+((o.motos||[]).length),0);
- const T={};V.forEach(o=>{const k=o.panierId||o.ticket||o.ts;(T[k]=T[k]||{n:o.ticket,ts:o.ts,client:o.tiers,L:[],m:0,modes:new Set()}).L.push(o.libelle);T[k].m+=+o.montant||0;T[k].modes.add(o.mode)});
+ const T={};V.forEach(o=>{const k=o.panierId||o.ticket||o.ts;(T[k]=T[k]||{n:o.ticket,ts:o.ts,client:o.tiers,L:[],m:0,modes:new Set()}).L.push(o);T[k].m+=+o.montant||0;T[k].modes.add(o.mode)});
  const tk=Object.values(T).sort((a,b)=>(a.ts||0)-(b.ts||0)),hh=t=>t?new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"";
  const PM={};V.concat(R).forEach(o=>PM[o.mode]=(PM[o.mode]||0)+(+o.montant||0));
  openSheet(lbl.replace(/^./,c=>c.toUpperCase()),`<div class="kg"><div class="kb"><span class="l">Ventes</span><b>${fmtN(sum(V))}</b><small>${tk.length} ticket(s) · ${motos} moto(s)</small></div><div class="kb"><span class="l">Sorties</span><b class="red">${S.length?"−":""}${fmtN(sum(S))}</b><small>${S.length} opération(s)</small></div></div>
  ${Object.keys(PM).length?`<h3 class="h3s">Encaissé par mode</h3><div class="card list">${Object.entries(PM).map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</div>`:""}
- <h3 class="h3s">Tickets</h3><div class="card list">${tk.map(t=>`<div class="lr"><span style="min-width:0">${t.n?"n° "+esc(t.n)+" · ":""}${hh(t.ts)}${t.client?" · "+esc(t.client):""}<small class="mute" style="display:block;font-size:12.5px;white-space:normal">${esc(t.L.join(", "))} · ${esc([...t.modes].join(" + "))}</small></span><b>${fmtN(t.m)}</b></div>`).join("")||`<p class="mute pad">Aucune vente.</p>`}</div>
- ${R.length?`<h3 class="h3s">Autres entrées</h3><div class="card list">${R.map(o=>`<div class="lr"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b>${fmtN(o.montant)}</b></div>`).join("")}</div>`:""}
- ${S.length?`<h3 class="h3s">Sorties</h3><div class="card list">${S.map(o=>`<div class="lr"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b class="red">−${fmtN(o.montant)}</b></div>`).join("")}</div>`:""}
- <p class="s">D'après la sauvegarde en ligne de ${hh(B.ts)}.</p>`)}
+ <h3 class="h3s">Tickets</h3><div class="card list">${tk.map(t=>`<div class="lr"><span style="min-width:0">${t.n?"n° "+esc(t.n)+" · ":""}${hh(t.ts)}${t.client?" · "+esc(t.client):""}<small class="mute" style="display:block;font-size:12.5px">${esc([...t.modes].join(" + "))}</small></span><b>${fmtN(t.m)}</b></div>${t.L.map(o=>`<button class="lr sub" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}</span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}`).join("")||`<p class="mute pad">Aucune vente.</p>`}</div>
+ ${R.length?`<h3 class="h3s">Autres entrées</h3><div class="card list">${R.map(o=>`<button class="lr" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}</div>`:""}
+ ${S.length?`<h3 class="h3s">Sorties</h3><div class="card list">${S.map(o=>`<button class="lr" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b class="red">−${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}</div>`:""}
+ <p class="s">D'après la sauvegarde en ligne de ${hh(B.ts)}. Touchez une ligne pour modifier son libellé, montant, mode ou catégorie.</p>`);
+ const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",type:o.type})})}
 async function loadBK(force){if(BK&&!force&&Date.now()-BK.loaded<5*60000)return BK;
  const L=(await FBX.list("sauvegardes")).sort((a,b)=>String(b.date).localeCompare(String(a.date)));if(!L.length)throw new Error("vide");
  const m=L[0];let s="";for(let i=0;i<(+m.parts||1);i++){const p=await FBX.get("sauvegardes_parts/"+m.date+"_"+i);s+=p&&p.data||""}
  const d=JSON.parse(s);BK={ts:m.ts,loaded:Date.now(),
-  ops:Object.values(d.ops||{}).sort((a,b)=>(b.ts||0)-(a.ts||0)).map(o=>({o,h:nrm([o.libelle,o.tiers,o.cat,o.mode,o.montant,o.ticket?"ticket "+o.ticket+" n"+o.ticket:"",o.date,fd(o.date),(o.motos||[]).map(x=>[x.modele,x.moteur,x.chassis,x.couleur].join(" ")).join(" "),o.article&&o.article.nom].join(" "))})),
+  ops:Object.entries(d.ops||{}).map(([k,o])=>(o.id=k,o)).sort((a,b)=>(b.ts||0)-(a.ts||0)).map(o=>({o,h:nrm([o.libelle,o.tiers,o.cat,o.mode,o.montant,o.ticket?"ticket "+o.ticket+" n"+o.ticket:"",o.date,fd(o.date),(o.motos||[]).map(x=>[x.modele,x.moteur,x.chassis,x.couleur].join(" ")).join(" "),o.article&&o.article.nom].join(" "))})),
   arts:Object.values(d.catalogue||{}).filter(a=>a.actif!==false).map(a=>({a,h:nrm([a.nom,a.cat].join(" "))})),
   tiers:Object.values(d.tiers||{}).map(t=>({t,h:nrm([t.nom,t.tel,t.type].join(" "))}))};return BK}
 function searchHtml(q){const W=/^[\d\s\u202f.]+$/.test(q.trim())?[q.replace(/\D/g,"")]:nrm(q).split(/\s+/).filter(Boolean);if(!W.length||nrm(q).replace(/\s/g,"").length<2)return`<p class="mute sm" style="margin:6px 0">Tapez au moins 2 lettres : article, client, n° moteur, libellé, montant, date (ex. 14/11)…</p>`;
