@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.7 · 17/11";
+const APP_VERSION="3.8 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -122,7 +122,7 @@ function cumul(){/* courbe du cumul des ventes du mois face à l'objectif (répa
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
- ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}</section>
+ ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}${m.achatsStock?`<div class="s" style="margin-top:4px">Achats de stock payés ce mois : ${fmtN(m.achatsStock)} Ar (sortie d'argent, pas une charge).</div>`:""}</section>
  
  ${cumul()}<section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
  <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
@@ -130,7 +130,7 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>
  <section class="card"><div class="ct"><b>Plus grosses sorties</b></div>${hbars(m.depCat)||`<p class="mute pad">—</p>`}
- <div class="s" style="margin-top:10px">Retraits des associés ${fmtN(m.retraits)} · camion à refacturer ${fmtN(m.camion)} (hors charges)</div></section>
+ <div class="s" style="margin-top:10px">Hors charges : achats de stock ${fmtN(m.achatsStock||0)} · retraits des associés ${fmtN(m.retraits)} · camion à refacturer ${fmtN(m.camion)}</div></section>
  <h2>Soldes</h2><section class="card list">${Object.entries(E.soldes).map(([k,v])=>`<div class="li"><span class="grow">${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</section>`}
 /* ---------- Caisse : soldes + opérations du gérant (transfert, dépôt, retrait banque, dépense, entrée) ---------- */
 let OPS=JSON.parse(localStorage.getItem("dg_ops")||"[]");
@@ -157,7 +157,7 @@ function bankForm(){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]
  <label class="fl">Libellé (obligatoire)<input id="b_l" maxlength="200" placeholder="Ex. virement fournisseur pièces, loyer novembre"></label>
  <label class="fl">N° de virement / chèque<input id="b_r" maxlength="80"></label>
  <div id="b_err" class="red sm" role="alert"></div><button class="b2 yes full" id="b_ok">Envoyer à la caisse</button>`);
- let sens="S";const fill=()=>{const C=sens==="S"?L.S.filter(c=>!exS.includes(c)):L.E.filter(c=>!exE.test(c));$("#b_c").innerHTML=opt(C,sens==="S"?pick(C,/fournisseur|achat/i):pick(C,/apport|divers|autre/i));
+ let sens="S";const fill=()=>{const C=sens==="S"?L.S.filter(c=>!exS.includes(c)):L.E.filter(c=>!exE.test(c));$("#b_c").innerHTML=opt(C,sens==="S"?(pick(C,/stock/i)||pick(C,/fournisseur|achat/i)):pick(C,/apport|divers|autre/i));
   $("#b_tl").textContent=sens==="S"?"Bénéficiaire":"Payé par";$("#b_t").placeholder=sens==="S"?"Ex. fournisseur, propriétaire…":"Ex. client, revendeur…"};
  $$(".seg2 button").forEach(b=>b.onclick=()=>{sens=b.dataset.s;$$(".seg2 button").forEach(x=>x.classList.toggle("on",x===b));fill()});fill();
  $("#b_ok").onclick=async()=>{const a=parseAmt($("#b_a").value),lib=$("#b_l").value.trim(),err=t=>{$("#b_err").textContent=t};
