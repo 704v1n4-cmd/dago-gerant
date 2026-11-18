@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.12 · 18/11";
+const APP_VERSION="3.13 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -102,7 +102,7 @@ function vDettes(){const all=E.dettes.liste,late=all.filter(x=>x.retard),L=DF===
  <span class="dbtn"><button class="ib" data-rel="${all.indexOf(x)}" aria-label="Relancer ${esc(x.tiers)}">${ic(MSG)}</button>${x.id&&E.listes?`<button class="ib" data-edd="${all.indexOf(x)}" aria-label="Modifier la dette de ${esc(x.tiers)}">${ic(PEN)}</button>`:""}</span></div>`).join("")}</section><p class="s" style="text-align:center;margin:0">Le bouton bulle prépare le message de relance (WhatsApp, SMS…).</p>`:`<div class="empty">Aucune dette ici.</div>`}`}
 /* paiements de dettes reçus (depuis la sauvegarde en ligne) */
 async function fillPayees(){const box=$("#payees");if(!box)return;let B;try{B=await loadBK()}catch(e){box.innerHTML=`<div class="note">Historique indisponible (pas de sauvegarde en ligne lisible).</div>`;return}
- const O=B.ops.map(x=>x.o).filter(o=>!o.annule&&o.type==="E"&&/^Règlement dette|^Acompte/.test(o.cat||"")).sort((a,b)=>(b.date+(b.ts||0)).localeCompare(a.date+(a.ts||0)));
+ const ALIAS={"tojo cousin":"Tojo Rasamimanana"};const O=B.ops.map(x=>x.o).filter(o=>!o.annule&&o.type==="E"&&/^Règlement dette|^Acompte/.test(o.cat||"")).map(o=>ALIAS[normName(o.tiers)]?{...o,tiers:ALIAS[normName(o.tiers)]}:o).sort((a,b)=>(b.date+(b.ts||0)).localeCompare(a.date+(a.ts||0)));
  const ouverts=new Set(E.dettes.liste.map(x=>normName(x.tiers)));
  const m0=E.mois.m,mois=O.filter(o=>String(o.date).startsWith(m0)),tot=mois.reduce((t,o)=>t+(+o.montant||0),0);
  const byT={};O.forEach(o=>{const k=o.tiers||"(sans nom)";(byT[k]=byT[k]||{n:0,m:0,last:o.date,soldee:!ouverts.has(normName(k))}).n++;byT[k].m+=+o.montant||0});
