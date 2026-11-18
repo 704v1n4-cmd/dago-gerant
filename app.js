@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.9 · 18/11";
+const APP_VERSION="3.10 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -125,7 +125,7 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}${m.achatsStock?`<div class="s" style="margin-top:4px">Achats de stock payés ce mois : ${fmtN(m.achatsStock)} Ar (sortie d'argent, pas une charge).</div>`:""}</section>
  
  ${cumul()}<section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
- <div class="vbars">${m.parJour.map(([d,v])=>`<div class="vb"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></div>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
+ <div class="vbars">${m.parJour.map(([d,v])=>`<button class="vb" data-day="${d}" aria-label="Détail du ${d}"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></button>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
  ${vObjMois()}
  ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>
@@ -368,6 +368,21 @@ function saveOld(){if(!OBJ_OK||!E||!E.jour||!E.jour._adj||!E.jour.date||E.jour.d
 /* ---------- recherche (dans la dernière sauvegarde en ligne de la caisse) ---------- */
 let BK=null,BKQ="";
 const nrm=s=>String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+/* détail d'un jour du mois (depuis la dernière sauvegarde en ligne) */
+async function dayDetail(dd){const iso=E.mois.m+"-"+String(dd).padStart(2,"0"),lbl=new Date(iso+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+ openSheet(lbl.replace(/^./,c=>c.toUpperCase()),`<p class="mute">Chargement du détail…</p>`);
+ let B;try{B=await loadBK()}catch(e){$("#dsheet .sb-body,#dsheet .sheet-body")&&0;openSheet(lbl,`<div class="note">Détail indisponible : pas de sauvegarde en ligne lisible (${esc(e.message||e)}).</div>`);return}
+ const O=B.ops.map(x=>x.o).filter(o=>o.date===iso&&!o.annule&&!o.ajustement),V=O.filter(o=>o.type==="E"&&/^Vente/.test(o.cat||"")),S=O.filter(o=>o.type==="S"&&!/^Transfert/.test(o.cat||"")),R=O.filter(o=>o.type==="E"&&!/^Vente|^Transfert/.test(o.cat||""));
+ const sum=a=>a.reduce((t,o)=>t+(+o.montant||0),0),motos=V.reduce((t,o)=>t+((o.motos||[]).length),0);
+ const T={};V.forEach(o=>{const k=o.panierId||o.ticket||o.ts;(T[k]=T[k]||{n:o.ticket,ts:o.ts,client:o.tiers,L:[],m:0,modes:new Set()}).L.push(o.libelle);T[k].m+=+o.montant||0;T[k].modes.add(o.mode)});
+ const tk=Object.values(T).sort((a,b)=>(a.ts||0)-(b.ts||0)),hh=t=>t?new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"";
+ const PM={};V.concat(R).forEach(o=>PM[o.mode]=(PM[o.mode]||0)+(+o.montant||0));
+ openSheet(lbl.replace(/^./,c=>c.toUpperCase()),`<div class="kg"><div class="kb"><span class="l">Ventes</span><b>${fmtN(sum(V))}</b><small>${tk.length} ticket(s) · ${motos} moto(s)</small></div><div class="kb"><span class="l">Sorties</span><b class="red">${S.length?"−":""}${fmtN(sum(S))}</b><small>${S.length} opération(s)</small></div></div>
+ ${Object.keys(PM).length?`<h3 class="h3s">Encaissé par mode</h3><div class="card list">${Object.entries(PM).map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</div>`:""}
+ <h3 class="h3s">Tickets</h3><div class="card list">${tk.map(t=>`<div class="lr"><span style="min-width:0">${t.n?"n° "+esc(t.n)+" · ":""}${hh(t.ts)}${t.client?" · "+esc(t.client):""}<small class="mute" style="display:block;font-size:12.5px;white-space:normal">${esc(t.L.join(", "))} · ${esc([...t.modes].join(" + "))}</small></span><b>${fmtN(t.m)}</b></div>`).join("")||`<p class="mute pad">Aucune vente.</p>`}</div>
+ ${R.length?`<h3 class="h3s">Autres entrées</h3><div class="card list">${R.map(o=>`<div class="lr"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b>${fmtN(o.montant)}</b></div>`).join("")}</div>`:""}
+ ${S.length?`<h3 class="h3s">Sorties</h3><div class="card list">${S.map(o=>`<div class="lr"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b class="red">−${fmtN(o.montant)}</b></div>`).join("")}</div>`:""}
+ <p class="s">D'après la sauvegarde en ligne de ${hh(B.ts)}.</p>`)}
 async function loadBK(force){if(BK&&!force&&Date.now()-BK.loaded<5*60000)return BK;
  const L=(await FBX.list("sauvegardes")).sort((a,b)=>String(b.date).localeCompare(String(a.date)));if(!L.length)throw new Error("vide");
  const m=L[0];let s="";for(let i=0;i<(+m.parts||1);i++){const p=await FBX.get("sauvegardes_parts/"+m.date+"_"+i);s+=p&&p.data||""}
@@ -388,7 +403,7 @@ async function openSearch(){openSheet("Rechercher",`<label class="fl" style="mar
  try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
   $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
  catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
-function bind(){$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
+function bind(){$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
