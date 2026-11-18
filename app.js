@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.11 · 18/11";
+const APP_VERSION="3.12 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -97,9 +97,22 @@ function ini(n){const w=String(n||"?").trim().split(/\s+/);return(w.length>1?w[0
 function vDettes(){const all=E.dettes.liste,late=all.filter(x=>x.retard),L=DF==="retard"?late:DF==="semaine"?all.filter(dueSoon):all,sl=late.reduce((s,x)=>s+x.reste,0),tt=E.dettes.total;
  return`<section class="card" aria-label="Total des dettes"><div class="l2">Total à encaisser · ${E.dettes.n} client${E.dettes.n>1?"s":""}</div><div class="big">${fmtN(tt)} <small>Ar</small></div>
  ${tt?`<div class="split" role="img" aria-label="En retard ${fmtN(sl)}, à venir ${fmtN(tt-sl)}"><i style="width:${Math.round(sl*100/tt)}%"></i><b></b></div><div class="spl"><span><b class="red">En retard</b> · ${fmtN(sl)}</span><span>À venir · ${fmtN(tt-sl)}</span></div>`:""}</section>
- <div class="seg3" role="group" aria-label="Filtre">${[["tout","Toutes"],["retard","En retard"],["semaine","Cette semaine"]].map(([k,l])=>`<button class="${DF===k?"on":""}" data-df="${k}" aria-pressed="${DF===k}">${l}</button>`).join("")}</div>
- ${L.length?`<section class="card list" aria-label="Liste des dettes">${L.map(x=>`<div class="dr"><span class="av" aria-hidden="true">${esc(ini(x.tiers))}</span><div class="grow"><div class="dt"><b>${esc(x.tiers)}</b><b>${fmtN(x.reste)}</b></div><small class="mute el">${esc(x.lib)}</small><div>${MODS["d:"+x.id]==="modif"?tag("modification envoyée","w")+" ":""}${x.ech?(x.retard?tag(daysLate(x)+" j de retard","r"):tag("Échéance le "+fd(x.ech),dueSoon(x)?"w":"")):tag("Sans échéance")}</div></div>
+ <div class="seg3" role="group" aria-label="Filtre">${[["tout","Toutes"],["retard","En retard"],["semaine","Semaine"],["payees","Payées"]].map(([k,l])=>`<button class="${DF===k?"on":""}" data-df="${k}" aria-pressed="${DF===k}">${l}</button>`).join("")}</div>
+ ${DF==="payees"?`<div id="payees"><p class="mute pad">Chargement des paiements…</p></div>`:L.length?`<section class="card list" aria-label="Liste des dettes">${L.map(x=>`<div class="dr"><span class="av" aria-hidden="true">${esc(ini(x.tiers))}</span><div class="grow"><div class="dt"><b>${esc(x.tiers)}</b><b>${fmtN(x.reste)}</b></div><small class="mute el">${esc(x.lib)}</small><div>${MODS["d:"+x.id]==="modif"?tag("modification envoyée","w")+" ":""}${x.ech?(x.retard?tag(daysLate(x)+" j de retard","r"):tag("Échéance le "+fd(x.ech),dueSoon(x)?"w":"")):tag("Sans échéance")}</div></div>
  <span class="dbtn"><button class="ib" data-rel="${all.indexOf(x)}" aria-label="Relancer ${esc(x.tiers)}">${ic(MSG)}</button>${x.id&&E.listes?`<button class="ib" data-edd="${all.indexOf(x)}" aria-label="Modifier la dette de ${esc(x.tiers)}">${ic(PEN)}</button>`:""}</span></div>`).join("")}</section><p class="s" style="text-align:center;margin:0">Le bouton bulle prépare le message de relance (WhatsApp, SMS…).</p>`:`<div class="empty">Aucune dette ici.</div>`}`}
+/* paiements de dettes reçus (depuis la sauvegarde en ligne) */
+async function fillPayees(){const box=$("#payees");if(!box)return;let B;try{B=await loadBK()}catch(e){box.innerHTML=`<div class="note">Historique indisponible (pas de sauvegarde en ligne lisible).</div>`;return}
+ const O=B.ops.map(x=>x.o).filter(o=>!o.annule&&o.type==="E"&&/^Règlement dette|^Acompte/.test(o.cat||"")).sort((a,b)=>(b.date+(b.ts||0)).localeCompare(a.date+(a.ts||0)));
+ const ouverts=new Set(E.dettes.liste.map(x=>normName(x.tiers)));
+ const m0=E.mois.m,mois=O.filter(o=>String(o.date).startsWith(m0)),tot=mois.reduce((t,o)=>t+(+o.montant||0),0);
+ const byT={};O.forEach(o=>{const k=o.tiers||"(sans nom)";(byT[k]=byT[k]||{n:0,m:0,last:o.date,soldee:!ouverts.has(normName(k))}).n++;byT[k].m+=+o.montant||0});
+ const sold=Object.entries(byT).filter(([,v])=>v.soldee);
+ box.innerHTML=`<section class="card"><div class="l2">Paiements reçus ce mois</div><div class="big">${fmtN(tot)} <small>Ar</small></div><div class="s">${mois.length} versement(s) · ${sold.length} client(s) n'ont plus de dette</div></section>
+ ${sold.length?`<h2>Dettes soldées</h2><section class="card list">${sold.map(([k,v])=>`<div class="lr"><span>${esc(k)}<small class="mute" style="display:block;font-size:12.5px">${v.n} versement(s) · dernier le ${fd(v.last)}</small></span><b class="okc">${fmtN(v.m)}</b></div>`).join("")}</section>`:""}
+ <h2>Tous les versements</h2><section class="card list">${O.map(o=>`<button class="lr" data-eop2="${esc(o.id)}"><span>${esc(o.tiers||o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${fd(o.date)} · ${esc(o.mode)}${ouverts.has(normName(o.tiers))?"":" · soldée"}</small></span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")||`<p class="mute pad">Aucun versement enregistré.</p>`}</section>
+ <p class="s">D'après la sauvegarde en ligne de ${new Date(B.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}.</p>`;
+ const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop2]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop2];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",type:o.type})})}
+const normName=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 let MF="mois";
 function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><div class="ct"><b>Scooters vendus par modèle</b></div><div class="note">Ce graphique apparaîtra après la mise à jour de la caisse du PC (version 2.1).</div></section>`;
  const L=(MF==="tout"?m.modelesTout:m.modeles)||[],mx=Math.max(1,...L.map(x=>x[1])),n=L.reduce((s,x)=>s+x[1],0);
@@ -404,7 +417,7 @@ async function openSearch(){openSheet("Rechercher",`<label class="fl" style="mar
  try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
   $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
  catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
-function bind(){$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
+function bind(){if(TAB==="dettes"&&DF==="payees")fillPayees();$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
