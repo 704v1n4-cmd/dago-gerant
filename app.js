@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.8 · 18/11";
+const APP_VERSION="3.9 · 18/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -153,17 +153,23 @@ function bankForm(){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]
  <label class="fl">Banque<select id="b_m">${opt(bank.length?bank:M,bank[0])}</select></label>
  <label class="fl">Type<select id="b_c"></select></label>
  <label class="fl"><span id="b_tl">Bénéficiaire</span><input id="b_t" maxlength="80" placeholder="Ex. fournisseur, propriétaire…"></label>
- <label class="fl">Montant (Ar)<input id="b_a" inputmode="decimal" placeholder="Ex. 2 500 000 ou 2,5M"></label>
+ <label class="fl">Devise<select id="b_dv"><option value="">Ariary (Ar)</option><option>USD</option><option>EUR</option><option>CNY</option></select></label>
+ <div id="b_fx" hidden><label class="fl"><span id="b_cd">Montant en USD</span><input id="b_da" inputmode="decimal" placeholder="Ex. 22 544"></label>
+ <label class="fl"><span id="b_cd2">Taux (Ar pour 1 USD)</span><input id="b_tx" inputmode="decimal" placeholder="Ex. 4 875"><small>Taux appliqué par la banque, voir l'avis d'opération</small></label></div>
+ <label class="fl">Montant débité en Ar<input id="b_a" inputmode="decimal" placeholder="Ex. 2 500 000 ou 2,5M"><small id="b_calc"></small></label>
  <label class="fl">Libellé (obligatoire)<input id="b_l" maxlength="200" placeholder="Ex. virement fournisseur pièces, loyer novembre"></label>
  <label class="fl">N° de virement / chèque<input id="b_r" maxlength="80"></label>
  <div id="b_err" class="red sm" role="alert"></div><button class="b2 yes full" id="b_ok">Envoyer à la caisse</button>`);
  let sens="S";const fill=()=>{const C=sens==="S"?L.S.filter(c=>!exS.includes(c)):L.E.filter(c=>!exE.test(c));$("#b_c").innerHTML=opt(C,sens==="S"?(pick(C,/stock/i)||pick(C,/fournisseur|achat/i)):pick(C,/apport|divers|autre/i));
   $("#b_tl").textContent=sens==="S"?"Bénéficiaire":"Payé par";$("#b_t").placeholder=sens==="S"?"Ex. fournisseur, propriétaire…":"Ex. client, revendeur…"};
+ const fx=()=>{const d=$("#b_dv").value;$("#b_fx").hidden=!d;$("#b_cd").textContent="Montant en "+(d||"USD");$("#b_cd2").textContent="Taux (Ar pour 1 "+(d||"USD")+")";const da=parseAmt($("#b_da").value),tx=parseFloat(String($("#b_tx").value).replace(/\s/g,"").replace(",","."));
+  if(d&&da>0&&tx>0){const v=Math.round(da*tx);$("#b_a").value=fmtN(v);$("#b_calc").textContent=fmtN(da)+" "+d+" × "+String(tx).replace(".",",")+" = "+fmtN(v)+" Ar (modifiable si la banque a pris des frais)"}else $("#b_calc").textContent=""};
+ ["#b_dv","#b_da","#b_tx"].forEach(q=>$(q).oninput=$(q).onchange=fx);
  $$(".seg2 button").forEach(b=>b.onclick=()=>{sens=b.dataset.s;$$(".seg2 button").forEach(x=>x.classList.toggle("on",x===b));fill()});fill();
  $("#b_ok").onclick=async()=>{const a=parseAmt($("#b_a").value),lib=$("#b_l").value.trim(),err=t=>{$("#b_err").textContent=t};
   if(!(a>0))return err("Montant invalide.");if(lib.length<3)return err("Précisez le libellé.");
-  const c={type:"operation",genre:sens==="S"?"sortie":"entree",cat:$("#b_c").value,mode:$("#b_m").value,montant:a,libelle:lib,tiers:$("#b_t").value.trim(),ref:$("#b_r").value.trim()};
-  if(!(await ask(`${sens==="S"?"Paiement depuis":"Virement reçu sur"} ${c.mode} : ${fmtN(a)} Ar (${c.cat}). Confirmer ?`,"Envoyer")))return;
+  const c={type:"operation",genre:sens==="S"?"sortie":"entree",cat:$("#b_c").value,mode:$("#b_m").value,montant:a,libelle:lib,tiers:$("#b_t").value.trim(),ref:$("#b_r").value.trim()};const dv=$("#b_dv").value;if(dv){const da=parseAmt($("#b_da").value),tx=parseFloat(String($("#b_tx").value).replace(/\s/g,"").replace(",","."));if(!(da>0)||!(tx>0))return err("Indiquez le montant en "+dv+" et le taux.");c.devise={code:dv,montant:da,taux:tx}}
+  if(!(await ask(`${sens==="S"?"Paiement depuis":"Virement reçu sur"} ${c.mode} : ${fmtN(a)} Ar${c.devise?` (${fmtN(c.devise.montant)} ${c.devise.code} à ${c.devise.taux})`:""} · ${c.cat}. Confirmer ?`,"Envoyer")))return;
   await sendCmd(c);OPS.push({ts:Date.now(),lib:lib+" · "+c.mode,m:sens==="S"?-a:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
   toast(navigator.onLine?"Envoyé à la caisse":"Enregistré : partira au retour du réseau",3500)}}
 function opForm(k){if(k==="banque")return bankForm();const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m)),esp=M.find(m=>/esp/i.test(m))||M[0];
