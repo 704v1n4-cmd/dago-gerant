@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.13 · 18/11";
+const APP_VERSION="3.14 · 19/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -111,7 +111,7 @@ async function fillPayees(){const box=$("#payees");if(!box)return;let B;try{B=aw
  ${sold.length?`<h2>Dettes soldées</h2><section class="card list">${sold.map(([k,v])=>`<div class="lr"><span>${esc(k)}<small class="mute" style="display:block;font-size:12.5px">${v.n} versement(s) · dernier le ${fd(v.last)}</small></span><b class="okc">${fmtN(v.m)}</b></div>`).join("")}</section>`:""}
  <h2>Tous les versements</h2><section class="card list">${O.map(o=>`<button class="lr" data-eop2="${esc(o.id)}"><span>${esc(o.tiers||o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${fd(o.date)} · ${esc(o.mode)}${ouverts.has(normName(o.tiers))?"":" · soldée"}</small></span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")||`<p class="mute pad">Aucun versement enregistré.</p>`}</section>
  <p class="s">D'après la sauvegarde en ligne de ${new Date(B.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}.</p>`;
- const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop2]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop2];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",type:o.type})})}
+ const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop2]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop2];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",obs:o.obs||"",type:o.type})})}
 const normName=t=>String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 let MF="mois";
 function vModeles(){const m=E.mois;if(!m.modeles)return`<section class="card"><div class="ct"><b>Scooters vendus par modèle</b></div><div class="note">Ce graphique apparaîtra après la mise à jour de la caisse du PC (version 2.1).</div></section>`;
@@ -339,14 +339,15 @@ function editOp(o){if(!o)return;const L=E.listes,isS=o.type==="S";
  <label class="fl">Mode de paiement<select id="e_p">${L.modes.map(m=>`<option ${m===o.mode?"selected":""}>${esc(m)}</option>`).join("")}</select></label>
  <label class="fl">Catégorie<select id="e_c">${(isS?L.S:L.E).map(c=>`<option ${c===o.cat?"selected":""}>${esc(c)}</option>`).join("")}${(isS?L.S:L.E).includes(o.cat)?"":`<option selected>${esc(o.cat)}</option>`}</select></label>
  <label class="fl">${isS?"Bénéficiaire":"Client"}<input id="e_t" value="${esc(o.tiers||"")}" maxlength="80"></label>
- <label class="fl">Motif de la modification (obligatoire)<input id="e_mo" placeholder="Ex. erreur de saisie du caissier" maxlength="200"></label>
+ <label class="fl">Observations<textarea id="e_ob" rows="2" maxlength="300" placeholder="Ex. prix bas : client fidèle, pièce d'occasion, remise accordée…">${esc(o.obs||"")}</textarea></label>
+ <label class="fl">Motif de la modification<input id="e_mo" placeholder="Ex. erreur de saisie du caissier" maxlength="200"><small>Obligatoire sauf si vous ajoutez seulement une observation</small></label>
  <div id="e_err" class="red sm" role="alert"></div><button class="b2 yes full" id="e_ok">Envoyer la modification</button>`);
- $("#e_ok").onclick=async()=>{const mo=$("#e_mo").value.trim(),m=parseAmt($("#e_m").value);
-  if(mo.length<3){$("#e_err").textContent="Indiquez le motif de la modification.";$("#e_mo").focus();return}
+ $("#e_ok").onclick=async()=>{let mo=$("#e_mo").value.trim();const m=parseAmt($("#e_m").value);
   if(!(m>0)){$("#e_err").textContent="Montant invalide.";$("#e_m").focus();return}
   const ch={},nv={libelle:$("#e_l").value.trim(),montant:m,mode:$("#e_p").value,cat:$("#e_c").value,tiers:$("#e_t").value.trim()},av={libelle:o.lib,montant:o.m,mode:o.mode,cat:o.cat,tiers:o.tiers||""};
-  Object.keys(nv).forEach(k=>{if(String(nv[k])!==String(av[k])&&!(k==="libelle"&&!nv[k]))ch[k]=nv[k]});
+  nv.obs=$("#e_ob").value.trim();av.obs=o.obs||"";Object.keys(nv).forEach(k=>{if(String(nv[k])!==String(av[k])&&!(k==="libelle"&&!nv[k]))ch[k]=nv[k]});
   if(!Object.keys(ch).length){$("#e_err").textContent="Rien n'a été changé.";return}
+  if(mo.length<3){if(Object.keys(ch).length===1&&"obs"in ch)mo="Observation ajoutée par le gérant";else{$("#e_err").textContent="Indiquez le motif de la modification.";$("#e_mo").focus();return}}
   MODS[o.id]="modif";localStorage.setItem("dg_mods",JSON.stringify(MODS));
   await sendCmd({type:"modif",id:o.id,champs:ch,motif:mo});closeSheet();render();toast(navigator.onLine?"Modification envoyée à la caisse":"Modification enregistrée : elle partira au retour du réseau",3500)}}
 async function cancelOpTel(o){if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? Si c'est une vente, tout le ticket est annulé et le stock remis.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;
@@ -392,11 +393,11 @@ async function dayDetail(dd){const iso=E.mois.m+"-"+String(dd).padStart(2,"0"),l
  const PM={};V.concat(R).forEach(o=>PM[o.mode]=(PM[o.mode]||0)+(+o.montant||0));
  openSheet(lbl.replace(/^./,c=>c.toUpperCase()),`<div class="kg"><div class="kb"><span class="l">Ventes</span><b>${fmtN(sum(V))}</b><small>${tk.length} ticket(s) · ${motos} moto(s)</small></div><div class="kb"><span class="l">Sorties</span><b class="red">${S.length?"−":""}${fmtN(sum(S))}</b><small>${S.length} opération(s)</small></div></div>
  ${Object.keys(PM).length?`<h3 class="h3s">Encaissé par mode</h3><div class="card list">${Object.entries(PM).map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</div>`:""}
- <h3 class="h3s">Tickets</h3><div class="card list">${tk.map(t=>`<div class="lr"><span style="min-width:0">${t.n?"n° "+esc(t.n)+" · ":""}${hh(t.ts)}${t.client?" · "+esc(t.client):""}<small class="mute" style="display:block;font-size:12.5px">${esc([...t.modes].join(" + "))}</small></span><b>${fmtN(t.m)}</b></div>${t.L.map(o=>`<button class="lr sub" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}</span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}`).join("")||`<p class="mute pad">Aucune vente.</p>`}</div>
+ <h3 class="h3s">Tickets</h3><div class="card list">${tk.map(t=>`<div class="lr"><span style="min-width:0">${t.n?"n° "+esc(t.n)+" · ":""}${hh(t.ts)}${t.client?" · "+esc(t.client):""}<small class="mute" style="display:block;font-size:12.5px">${esc([...t.modes].join(" + "))}</small></span><b>${fmtN(t.m)}</b></div>${t.L.map(o=>`<button class="lr sub" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}${o.obs?`<small style="display:block;font-size:12px;color:#92400e">Obs. : ${esc(o.obs)}</small>`:""}</span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}`).join("")||`<p class="mute pad">Aucune vente.</p>`}</div>
  ${R.length?`<h3 class="h3s">Autres entrées</h3><div class="card list">${R.map(o=>`<button class="lr" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b>${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}</div>`:""}
  ${S.length?`<h3 class="h3s">Sorties</h3><div class="card list">${S.map(o=>`<button class="lr" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${esc(o.cat)} · ${esc(o.mode)}</small></span><b class="red">−${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")}</div>`:""}
  <p class="s">D'après la sauvegarde en ligne de ${hh(B.ts)}. Touchez une ligne pour modifier son libellé, montant, mode ou catégorie.</p>`);
- const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",type:o.type})})}
+ const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",obs:o.obs||"",type:o.type})})}
 async function loadBK(force){if(BK&&!force&&Date.now()-BK.loaded<5*60000)return BK;
  const L=(await FBX.list("sauvegardes")).sort((a,b)=>String(b.date).localeCompare(String(a.date)));if(!L.length)throw new Error("vide");
  const m=L[0];let s="";for(let i=0;i<(+m.parts||1);i++){const p=await FBX.get("sauvegardes_parts/"+m.date+"_"+i);s+=p&&p.data||""}
