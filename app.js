@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.14 · 19/11";
+const APP_VERSION="3.15 · 20/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -52,7 +52,13 @@ const PEN='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>';const SRCH=
 let DF="tout";
 function pending(){return E?E.validations.filter(v=>!SENT[v.cle]):[]}
 function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$(".body")?$(".body").scrollTop:0;
- if(!E){$("#app").innerHTML=`<div class="login"><div class="lbox"><img class="logo big" src="logo-sombre.svg" alt="Dago Moto Shop"><p>${navigator.onLine?"Chargement des données de la caisse…":"Pas de connexion internet. Les données apparaîtront dès que le téléphone sera connecté."}</p><p class="mute sm">Si rien n'arrive : vérifiez que la caisse est allumée et liée (Réglages › Téléphone et cloud).</p><p class="s">App version ${APP_VERSION}</p><button class="lnk" id="lo">Se déconnecter</button></div></div>`;$("#lo").onclick=()=>FBX.signOut();return}
+ if(!E){const on=navigator.onLine;$("#app").innerHTML=`<div class="boot2"><img class="bl" src="logo-sombre.svg" alt="Dago Moto Shop">
+ <div class="bc">${on?`<div class="spin" aria-hidden="true"></div><p class="btt">Chargement des chiffres…</p>`:`<p class="btt">Pas de connexion</p>`}
+ <p class="bs" id="bs">${on?"Quelques secondes avec une bonne connexion.":"Les chiffres s'afficheront dès que le téléphone sera connecté."}</p>
+ <button class="b2 yes full" id="brt" hidden>Réessayer</button></div>
+ <div class="bf"><span>Version ${APP_VERSION}</span><button class="lnk" id="lo">Se déconnecter</button></div></div>`;
+ $("#lo").onclick=()=>FBX.signOut();$("#brt").onclick=()=>location.reload();
+ clearTimeout(window._bt);window._bt=setTimeout(()=>{if(E||!$("#bs"))return;$("#bs").textContent="C'est plus long que d'habitude. Vérifiez internet, ou que la caisse du magasin a déjà envoyé ses chiffres (ordi allumé et connecté).";$("#brt").hidden=false},12000);return}
  const off=!navigator.onLine||META.fromCache,old=Date.now()-E.maj>15*60000,nV=pending().length;
  const mois=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[+E.mois.m.slice(5)-1]);
  const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Clients","Dettes"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"],caisse:["","Soldes et opérations","Caisse"]};

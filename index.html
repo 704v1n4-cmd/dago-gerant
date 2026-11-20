@@ -193,6 +193,15 @@ button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;fle
 .lr.sub{padding-left:14px;font-size:14px;color:var(--sub)}.lr.sub b{font-size:14px;font-weight:600}.lr svg{flex:none;width:16px;height:16px;color:var(--mute);margin-left:8px}
 .mh{gap:8px}.mh .hl{min-width:0;flex:1 1 auto}.mh .hl>div{min-width:0}.mh .hl small,.mh .hl h1{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mh .sync{flex:none}
 .fl textarea{font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--field,var(--card));color:var(--ink);resize:vertical;width:100%;box-sizing:border-box}
+.boot2{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:32px 28px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+.boot2 .bl{width:112px;height:auto;background:#0c0a09;border-radius:24px;padding:18px 20px;box-sizing:content-box;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.boot2 .bc{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.boot2 .btt{font:700 18px 'Inter Tight',Inter,sans-serif;margin:6px 0 0;color:var(--ink)}.boot2 .bs{font-size:14px;color:var(--mute);margin:0;line-height:1.45}
+.boot2 .bf{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;color:var(--mute)}
+.boot2 #brt{margin-top:10px}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:#71f331;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
