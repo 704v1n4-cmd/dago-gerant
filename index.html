@@ -204,8 +204,8 @@ button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;fle
 [hidden]{display:none!important}
 /* 3.16 : graphique ventes par jour toujours dans le cadre */
 .vbars{width:100%;overflow:visible;gap:6px}button.vb{min-width:0;flex:1 1 0}
-.vbars.many{gap:3px}.vbars.many .vb b{visibility:hidden}.vbars.many .vb.key b{visibility:visible;font-size:9.5px;white-space:nowrap}
-.vbars.many .vb span{font-size:9.5px}.vbars.many .vb:nth-child(even):not(.key) span{visibility:hidden}
+.vbars.many{gap:3px;height:170px}.vbars.many .vb b{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;line-height:1;white-space:nowrap;letter-spacing:.01em}
+.vbars.many .vb.key b{color:var(--ink)}.vbars.many .vb span{font-size:9.5px;letter-spacing:-.02em}
 .vbars.many .vb i{border-radius:4px 4px 1px 1px}
 </style>
 </head>
