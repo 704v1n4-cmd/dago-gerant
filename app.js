@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.15 · 20/11";
+const APP_VERSION="3.16 · 25/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -144,7 +144,7 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}${m.achatsStock?`<div class="s" style="margin-top:4px">Achats de stock payés ce mois : ${fmtN(m.achatsStock)} Ar (sortie d'argent, pas une charge).</div>`:""}</section>
  
  ${cumul()}<section class="card" aria-label="Ventes par jour"><div class="ct"><b>Ventes par jour</b><span class="sm mute">millions d'Ar</span></div>
- <div class="vbars">${m.parJour.map(([d,v])=>`<button class="vb" data-day="${d}" aria-label="Détail du ${d}"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.round(v*72/maxJ)}%"></i><span>${d}</span></button>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
+ <div class="vbars ${m.parJour.length>12?"many":""}">${m.parJour.map(([d,v],k,A)=>`<button class="vb ${v===maxJ||k===A.length-1?"key":""}" data-day="${d}" aria-label="Détail du ${d} : ${fmtN(v)} Ar"><b>${(v/1e6).toFixed(1).replace(".",",")}</b><i style="height:${Math.max(2,Math.round(v*72/maxJ))}%"></i><span>${d}</span></button>`).join("")||`<p class="mute">Aucune vente ce mois-ci.</p>`}</div></section>
  ${vObjMois()}
  ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>

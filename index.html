@@ -202,6 +202,11 @@ button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;fle
 .spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:#71f331;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
 [hidden]{display:none!important}
+/* 3.16 : graphique ventes par jour toujours dans le cadre */
+.vbars{width:100%;overflow:visible;gap:6px}button.vb{min-width:0;flex:1 1 0}
+.vbars.many{gap:3px}.vbars.many .vb b{visibility:hidden}.vbars.many .vb.key b{visibility:visible;font-size:9.5px;white-space:nowrap}
+.vbars.many .vb span{font-size:9.5px}.vbars.many .vb:nth-child(even):not(.key) span{visibility:hidden}
+.vbars.many .vb i{border-radius:4px 4px 1px 1px}
 </style>
 </head>
 <body>
