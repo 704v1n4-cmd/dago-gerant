@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.23 · 26/11";
+const APP_VERSION="3.24 · 26/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -161,7 +161,7 @@ function vCaisse(){const S=Object.entries(E.soldes||{}),tot=S.reduce((a,[,v])=>a
  <section class="card list" aria-label="Soldes par mode">${S.map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b class="${v<0?"red":""}">${fmtN(v)}</b></div>`).join("")}</section>
  <h2>Nouvelle opération</h2>
  <section class="cag">${act("transfert","Transfert","Dépôt, retrait, entre modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("banque","Opération bancaire","Virement, loyer, frais…",'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
- ${OPS.length?`<h2>Envoyé à la caisse</h2><section class="card list">${OPS.slice().reverse().map(o=>`<div class="lr"><span>${esc(o.lib)}<small class="mute" style="display:block;font-size:12px">${new Date(o.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · ${o.ts<E.maj?"enregistré par la caisse":"en attente de la caisse"}</small></span><b>${fmtN(o.m)}</b></div>`).join("")}</section>`:""}
+ ${OPS.length?`<h2>Envoyé à la caisse</h2><section class="card list">${OPS.slice().reverse().map(o=>`<div class="lr${o.annule?" strike":""}"><span>${esc(o.lib)}<small class="mute" style="display:block;font-size:12px">${new Date(o.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · ${o.annule?"annulation envoyée":o.ts<E.maj?"enregistré par la caisse":"en attente de la caisse"}</small></span><b>${fmtN(o.m)}</b>${o.cid&&!o.annule?`<button class="b2 ghost xop" data-xop="${o.cid}" aria-label="Annuler cette opération">Annuler</button>`:""}</div>`).join("")}</section>`:""}
  <section class="card list">${lrow("encaisse","Encaissé aujourd'hui",fmtN(j.encaisse))}${lrow("depenses","Sorties aujourd'hui",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}</section>
  <p class="s pad">Les opérations sont enregistrées par la caisse dès que le PC est connecté. Elles apparaissent dans l'historique de la caisse avec la mention « téléphone ».</p>`}
 function bankForm(){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m));
@@ -189,7 +189,7 @@ function bankForm(){const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]
   if(!(a>0))return err("Montant invalide.");if(lib.length<3)return err("Précisez le libellé.");
   const c={type:"operation",genre:sens==="S"?"sortie":"entree",cat:$("#b_c").value,mode:$("#b_m").value,montant:a,libelle:lib,tiers:$("#b_t").value.trim(),ref:$("#b_r").value.trim()};const dv=$("#b_dv").value;if(dv){const da=parseAmt($("#b_da").value),tx=parseFloat(String($("#b_tx").value).replace(/\s/g,"").replace(",","."));if(!(da>0)||!(tx>0))return err("Indiquez le montant en "+dv+" et le taux.");c.devise={code:dv,montant:da,taux:tx}}
   if(!(await ask(`${sens==="S"?"Paiement depuis":"Virement reçu sur"} ${c.mode} : ${fmtN(a)} Ar${c.devise?` (${fmtN(c.devise.montant)} ${c.devise.code} à ${c.devise.taux})`:""} · ${c.cat}. Confirmer ?`,"Envoyer")))return;
-  await sendCmd(c);OPS.push({ts:Date.now(),lib:lib+" · "+c.mode,m:sens==="S"?-a:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
+  const cid=await sendCmd(c);OPS.push({cid,ts:Date.now(),lib:lib+" · "+c.mode,m:sens==="S"?-a:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
   toast(navigator.onLine?"Envoyé à la caisse":"Enregistré : partira au retour du réseau",3500)}}
 function opForm(k){if(k==="banque")return bankForm();const L=E.listes||{modes:Object.keys(E.soldes||{}),S:[],E:[]},M=L.modes,bank=M.filter(m=>!/esp|mvola|orange|airtel/i.test(m)),esp=M.find(m=>/esp/i.test(m))||M[0];
  const sel=(id,arr,v)=>`<select id="${id}">${arr.map(m=>`<option ${m===v?"selected":""}>${esc(m)}</option>`).join("")}</select>`;
@@ -209,7 +209,7 @@ function opForm(k){if(k==="banque")return bankForm();const L=E.listes||{modes:Ob
   else{if(lib.length<3)return err("Précisez le libellé.");c={type:"operation",genre:k==="sortie"?"sortie":"entree",cat:$("#o_c").value,mode:$("#o_m").value,montant:a,libelle:lib,tiers:$("#o_t").value.trim(),ref:$("#o_r").value.trim()}}
   const txt=tr?`${c.de} → ${c.vers}`:`${c.cat} · ${c.mode}`;
   if(!(await ask(`${title} : ${fmtN(a)} Ar (${txt}). Confirmer ?`,"Envoyer")))return;
-  await sendCmd(c);OPS.push({ts:Date.now(),lib:(lib||title)+" · "+txt,m:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
+  const cid=await sendCmd(c);OPS.push({cid,ts:Date.now(),lib:(lib||title)+" · "+txt,m:a});localStorage.setItem("dg_ops",JSON.stringify(OPS));closeSheet();render();
   toast(navigator.onLine?"Envoyé à la caisse":"Enregistré : partira au retour du réseau",3500)}}
 const STL={recue:"Reçue",encours:"En réparation",prete:"Prête",livree:"Livrée"};
 function vPlus(){const dark=document.documentElement.dataset.theme!=="light";
@@ -424,7 +424,7 @@ async function openSearch(){openSheet("Rechercher",`<label class="fl" style="mar
  try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
   $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
  catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
-function bind(){if(TAB==="dettes"&&DF==="payees")fillPayees();$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
+function bind(){$$("[data-xop]").forEach(b=>b.onclick=async()=>{const o=OPS.find(x=>x.cid===b.dataset.xop);if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? La caisse l'enregistrera comme annulée, avec votre motif.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;await sendCmd({type:"annulation",id:"o_t"+o.cid,motif:r===true?"":r});o.annule=true;localStorage.setItem("dg_ops",JSON.stringify(OPS));render();toast(navigator.onLine?"Annulation envoyée à la caisse":"Annulation enregistrée : elle partira au retour du réseau",3500)});if(TAB==="dettes"&&DF==="payees")fillPayees();$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
@@ -444,6 +444,6 @@ async function decide(cle,dec){const v=E.validations.find(x=>x.cle===cle);if(!v)
  await sendCmd({type:"decision",cle,decision:dec,motif:r===true?"":r});toast(dec==="accepte"?"Accepté":"Refusé")}
 function sendCmd(c){const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
  const p=FBX.set("commandes/"+id,{...c,ts:Date.now(),par:USER.email,statut:"nouvelle"});
- return Promise.race([p,new Promise(r=>setTimeout(r,4000))]).catch(e=>toast("Envoi impossible : "+(e.message||e),4000))}
+ return Promise.race([p,new Promise(r=>setTimeout(r,4000))]).catch(e=>toast("Envoi impossible : "+(e.message||e),4000)).then(()=>id)}
 /* nettoyage : oublie les décisions envoyées qui ne sont plus en attente */
 setInterval(()=>{if(!E)return;const keep=new Set(E.validations.map(v=>v.cle));let ch=false;Object.keys(SENT).forEach(k=>{if(!keep.has(k)){delete SENT[k];ch=true}});if(ch)localStorage.setItem("dg_sent",JSON.stringify(SENT))},60000);
