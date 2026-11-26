@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.24 · 26/11";
+const APP_VERSION="3.25 · 26/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -347,8 +347,8 @@ function editOp(o){if(!o)return;const L=E.listes,isS=o.type==="S";
  <label class="fl">${isS?"Bénéficiaire":"Client"}<input id="e_t" value="${esc(o.tiers||"")}" maxlength="80"></label>
  <label class="fl">Observations<textarea id="e_ob" rows="2" maxlength="300" placeholder="Ex. prix bas : client fidèle, pièce d'occasion, remise accordée…">${esc(o.obs||"")}</textarea></label>
  <label class="fl">Motif de la modification<input id="e_mo" placeholder="Ex. erreur de saisie du caissier" maxlength="200"><small>Obligatoire sauf si vous ajoutez seulement une observation</small></label>
- <div id="e_err" class="red sm" role="alert"></div><button class="b2 yes full" id="e_ok">Envoyer la modification</button>`);
- $("#e_ok").onclick=async()=>{let mo=$("#e_mo").value.trim();const m=parseAmt($("#e_m").value);
+ <div id="e_err" class="red sm" role="alert"></div><button class="b2 yes full" id="e_ok">Envoyer la modification</button><button class="b2 ghost full dng" id="e_anl">Annuler cette opération</button>`);
+ $("#e_anl").onclick=()=>{closeSheet();cancelOpTel(o)};$("#e_ok").onclick=async()=>{let mo=$("#e_mo").value.trim();const m=parseAmt($("#e_m").value);
   if(!(m>0)){$("#e_err").textContent="Montant invalide.";$("#e_m").focus();return}
   const ch={},nv={libelle:$("#e_l").value.trim(),montant:m,mode:$("#e_p").value,cat:$("#e_c").value,tiers:$("#e_t").value.trim()},av={libelle:o.lib,montant:o.m,mode:o.mode,cat:o.cat,tiers:o.tiers||""};
   nv.obs=$("#e_ob").value.trim();av.obs=o.obs||"";Object.keys(nv).forEach(k=>{if(String(nv[k])!==String(av[k])&&!(k==="libelle"&&!nv[k]))ch[k]=nv[k]});
