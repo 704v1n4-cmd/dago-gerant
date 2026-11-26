@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.19 · 25/11";
+const APP_VERSION="3.20 · 26/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -62,20 +62,20 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  clearTimeout(window._bt);window._bt=setTimeout(()=>{if(E||!$("#bs"))return;$("#bs").textContent="C'est plus long que d'habitude. Vérifiez internet, ou que la caisse du magasin a déjà envoyé ses chiffres (ordi allumé et connecté).";$("#brt").hidden=false},12000);return}
  const off=!navigator.onLine||META.fromCache,old=Date.now()-E.maj>15*60000,nV=pending().length;
  const mois=(m=>m[0].toUpperCase()+m.slice(1))(MOIS[+E.mois.m.slice(5)-1]);
- const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Ventes sous le prix minimum","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Clients","Dettes"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"],caisse:["","Soldes et opérations","Caisse"]};
+ const titles={jour:["",new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^./,c=>c.toUpperCase()),"Aujourd'hui"],valider:["","Prix bas","À valider"+(E.validations.length?` <span class="mute">(${nV})</span>`:"")],dettes:["","Clients","Dettes"],mois:["",E.mois.m.slice(0,4),mois],plus:["",esc(E.boutique),"Plus"],caisse:["","Soldes et opérations","Caisse"]};
  const T=titles[TAB];
  $("#app").innerHTML=`<header class="mh"><div class="hl"><img class="lg" src="icone-dago.svg" alt="" aria-hidden="true"><div><small>${T[1]}</small><h1>${T[2]}</h1></div></div>
  <div class="hr"><span class="sync ${off||old?"w":""}">${off?"Hors ligne":"Caisse · "+ago(E.maj).replace("il y a ","").replace("à l'instant","maintenant")}</span><button class="ib" id="srch" aria-label="Rechercher">${ic(SRCH)}</button></div></header>
  ${old&&!off?`<div class="warnbar" role="status">La caisse n'a rien envoyé depuis ${ago(E.maj).replace("il y a ","")} : PC éteint, logiciel fermé ou pas d'internet au magasin.</div>`:""}
  <main class="body">${({jour:vJour,caisse:vCaisse,valider:vValider,dettes:vDettes,mois:vMois,plus:vPlus})[TAB]()}</main>
- <nav class="tabs" aria-label="Menu">${TABS.map(([k,l,p])=>`<button class="${k===TAB?"on":""}" data-t="${k}" ${k===TAB?'aria-current="page"':""}><span class="pill">${ic(p)}${k==="valider"&&nV?`<em>${nV}</em>`:""}</span>${l}</button>`).join("")}</nav>`;
+ <nav class="tabs" aria-label="Menu">${TABS.filter(([k])=>k!=="valider"||nV||TAB==="valider").map(([k,l,p])=>`<button class="${k===TAB?"on":""}" data-t="${k}" ${k===TAB?'aria-current="page"':""}><span class="pill">${ic(p)}${k==="valider"&&nV?`<em>${nV}</em>`:""}</span>${l}</button>`).join("")}</nav>`;
  $$("[data-t]").forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render();$(".body").scrollTop=0});
  bind();const bd=$(".body");if(bd&&sy)bd.scrollTop=sy}
 function bar(v,max,a){return`<span class="bt ${a?"a":""}"><i style="width:${max?Math.max(2,Math.round(v*100/max)):0}%"></i></span>`}
 function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
 function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const mx=Math.max(1,...P.map(x=>x[1]));
  return`<div class="spark" role="img" aria-label="Ventes des derniers jours">${P.map(([d,v],i)=>`<div><i class="${i===P.length-1?"on":""}" style="height:${Math.max(3,Math.round(v*44/mx))}px"></i><span>${d}</span></div>`).join("")}</div>`}
-const kbox=(k,l,v,cls,sub)=>`<button class="kb" data-sh="${k}"><span class="l">${l}</span><b class="${cls||""}">${v}</b>${sub?`<small>${sub}</small>`:""}</button>`;
+const kbox=(k,l,v,cls,sub)=>`<button class="kb" data-sh="${k}"><span class="l">${l}</span><b class="${cls||""}">${v}${/\d$/.test(v)?'<i class="u">Ar</i>':""}</b>${sub?`<small>${sub}</small>`:""}</button>`;
 const lrow=(k,l,v,cls)=>`<button class="lr" data-sh="${k}"><span>${l}</span><b class="${cls||""}">${v}</b>${ic(CHEV)}</button>`;
 function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x=>x.retard),nA=(nV?1:0)+(E.refusees?1:0)+(late.length?1:0)+(E.stock.faible.length?1:0);
  return`<button class="card hero tap" data-sh="ventes"><div class="ht"><div><div class="l">Ventes du jour</div><div class="v">${fmtN(j.ventes)} <small>Ar</small></div>
@@ -90,7 +90,7 @@ function vJour(){const j=E.jour,nV=pending().length,late=E.dettes.liste.filter(x
  ${E.stock.faible.length?`<button class="ar" data-go="plus"><i class="ic a">${ic(BOX)}</i><span class="grow"><b>Stock faible : ${E.stock.faible.length} article(s)</b><small>${esc(E.stock.faible.slice(0,2).map(i=>i.nom).join(", "))}</small></span>${ic(CHEV)}</button>`:""}</section>`:""}
  <div class="sec"><h2>Tickets du jour</h2></div><section class="card list">${j.tickets.map((t,i)=>`<button class="li tap ${t.annule?"strike":""}" data-tk="${i}"><span class="grow"><b>${esc(t.lib)}</b><small class="mute">${t.h}${t.n?" · n° "+t.n:""}${t.tiers?" · "+esc(t.tiers):""}</small>${t.annule?`<span class="tgs">${tag("annulé","r")}</span>`:t.ancienne?`<span class="tgs">${tag("ancienne dette · non comptée")}</span>`:""}</span><b>${fmtN(t.tot)}</b></button>`).join("")||`<p class="mute pad">Aucune vente pour l'instant.</p>`}</section>
  <div class="sec"><h2>Dépenses du jour</h2></div><section class="card list">${j.depensesListe.map(o=>`<button class="li tap" data-sh="depenses"><span class="grow"><b>${esc(o.lib)}</b><small class="mute">${o.h} · ${esc(o.cat)}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="red">−${fmtN(o.m)}</b></button>`).join("")||`<p class="mute pad">Aucune dépense.</p>`}</section>`}
-function vValider(){const L=E.validations;if(!L.length)return`<div class="empty">Aucune vente à valider. Tout est en ordre.</div>`;
+function vValider(){const L=E.validations;if(!L.length)return`<div class="empty e2"><span class="ei">${ic('<path d="m5 12 5 5 9-10"/>')}</span><b>Tout est en ordre</b><span>Aucune vente sous le prix minimum à valider.</span></div>`;
  return L.map(v=>{const prix=v.lignes.reduce((s,l)=>s+l.prix,0),mn=v.lignes.reduce((s,l)=>s+l.minimum,0),ct=v.lignes.reduce((s,l)=>s+l.cout,0),sent=SENT[v.cle];
   return`<article class="card vc"><div class="top"><div><h3>${esc(v.lignes.map(l=>l.lib).join(" + "))}</h3><div class="mute sm">${v.ticket?"Ticket n° "+v.ticket+" · ":""}${fd(v.date)} · ${esc(v.par)}</div></div>${tag(v.vente)}</div>
   <div class="cmp"><div><small>Vendu</small><b>${fmtN(prix)}</b></div><div><small>Minimum</small><b>${fmtN(mn)}</b></div><div class="bad"><small>Écart</small><b>${fmtN(prix-mn)}</b></div></div>
@@ -160,8 +160,7 @@ function vCaisse(){const S=Object.entries(E.soldes||{}),tot=S.reduce((a,[,v])=>a
  return`<section class="card hero"><div class="l">Total en caisse et en banque</div><div class="v">${fmtN(tot)} <small>Ar</small></div><div class="s">Espèces attendues dans le tiroir : ${fmtN(j.especes)} Ar</div></section>
  <section class="card list" aria-label="Soldes par mode">${S.map(([k,v])=>`<div class="lr"><span>${esc(k)}</span><b class="${v<0?"red":""}">${fmtN(v)}</b></div>`).join("")}</section>
  <h2>Nouvelle opération</h2>
- <section class="cag">${act("depot","Déposer à la banque","Espèces → banque",'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>')}${act("retrait","Retirer de la banque","Banque → espèces",'<path d="M12 20V8M7 13l5-5 5 5M4 4h16"/>')}
- ${act("transfert","Transfert","Entre deux modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("banque","Opération bancaire","Virement, loyer, frais…",'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
+ <section class="cag">${act("transfert","Transfert","Dépôt, retrait, entre modes",'<path d="M4 8h14l-3-3M20 16H6l3 3"/>')}${act("banque","Opération bancaire","Virement, loyer, frais…",'<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>')}${act("sortie","Dépense / sortie","Payer, décaisser",'<path d="M5 12h14"/>')}${act("entree","Entrée d'argent","Apport, autre recette",'<path d="M12 5v14M5 12h14"/>')}</section>
  ${OPS.length?`<h2>Envoyé à la caisse</h2><section class="card list">${OPS.slice().reverse().map(o=>`<div class="lr"><span>${esc(o.lib)}<small class="mute" style="display:block;font-size:12px">${new Date(o.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · ${o.ts<E.maj?"enregistré par la caisse":"en attente de la caisse"}</small></span><b>${fmtN(o.m)}</b></div>`).join("")}</section>`:""}
  <section class="card list">${lrow("encaisse","Encaissé aujourd'hui",fmtN(j.encaisse))}${lrow("depenses","Sorties aujourd'hui",(j.depenses?"−":"")+fmtN(j.depenses),j.depenses?"red":"")}</section>
  <p class="s pad">Les opérations sont enregistrées par la caisse dès que le PC est connecté. Elles apparaissent dans l'historique de la caisse avec la mention « téléphone ».</p>`}
@@ -298,7 +297,7 @@ function objMois(){const now=new Date(),H=monthHours(now.getFullYear(),now.getMo
  return{ca:Math.round(OBJ_PROP.ca*H/100000)*100000,marge:Math.round(OBJ_PROP.marge*H/100000)*100000,motos:Math.round(OBJ_PROP.motos*H),prop:true,H}}
 function fmtQ(v,k){return k==="motos"?(Math.round(v*10)/10).toString().replace(".",","):fmtN(Math.round(v/1000)*1000)}
 function gaugeRow(lbl,k,val,goal,expect,extra){if(!goal)return"";const pct=Math.min(100,val*100/goal),ex=Math.min(100,expect*100/goal),ahead=val>=expect,unit=k==="motos"?"":" Ar";
- const st=val>=goal?`<span class="ok">Objectif atteint</span>`:expect>0?(ahead?`<span class="ok">En avance de ${fmtQ(val-expect,k)}${unit}</span>`:`<span class="lt">En retard de ${fmtQ(expect-val,k)}${unit}</span>`):`<span class="mute">Pas encore commencé</span>`;
+ const st=val>=goal?`<span class="ok">Objectif atteint</span>`:expect>0?(ahead?`<span class="ok">En avance de ${fmtQ(val-expect,k)}${unit}</span>`:(val===0?`<span class="mute">À faire aujourd'hui</span>`:`<span class="lt">En retard de ${fmtQ(expect-val,k)}${unit}</span>`)):`<span class="mute">Pas encore commencé</span>`;
  return`<div class="gr"><div class="gt"><span>${lbl}</span><span><b>${val==null?"—":fmtQ(val,k)}</b><span class="mute"> / ${fmtQ(goal,k)}${unit}</span></span></div>
  <div class="gb" role="img" aria-label="${lbl} : ${Math.round(pct)} % de l'objectif"><i class="${val>=goal?"done":""}" style="width:${pct}%"></i>${expect>0&&expect<goal?`<u style="left:${ex}%"></u>`:""}</div>
  <div class="gs">${st}${extra?`<span class="mute">${extra}</span>`:""}</div></div>`}

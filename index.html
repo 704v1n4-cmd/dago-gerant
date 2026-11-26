@@ -186,7 +186,7 @@ img.logo.big{width:150px;height:auto;background:#0c0a09!important;padding:18px 2
 .ca .ci{flex:none;width:36px;height:36px;border-radius:11px;background:var(--accent);color:#0c0a09;display:flex;align-items:center;justify-content:center}.ca .ci svg{width:20px;height:20px}
 .ca b{display:block;font-size:14.5px}.ca small{display:block;font-size:12px;color:var(--mute);margin-top:2px}.ca:active{transform:scale(.98)}
 .tabs button{min-width:0;font-size:11px}
-.tabs{grid-template-columns:repeat(6,1fr)!important;display:grid!important}.tabs button{width:auto!important;padding-left:0;padding-right:0}
+.tabs{grid-auto-flow:column;grid-auto-columns:1fr;grid-template-columns:none!important;display:grid!important}.tabs button{width:auto!important;padding-left:0;padding-right:0}
 .mh .hl small{white-space:nowrap}
 .seg2{display:flex;background:var(--card2,#f4f4f5);border-radius:12px;padding:4px;gap:4px;margin-bottom:6px}.seg2 button{flex:1;border:0;background:none;padding:10px 6px;border-radius:9px;font:600 13.5px Inter,sans-serif;color:var(--mute)}.seg2 button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
 button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}button.vb:active i{opacity:.7}.h3s{font:700 15px 'Inter Tight',Inter,sans-serif;margin:16px 0 8px}
@@ -217,7 +217,11 @@ button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;fle
 .vbars.many{gap:3px;height:170px}.vbars.many .vb b{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;line-height:1;white-space:nowrap;letter-spacing:.01em}
 .vbars.many .vb.key b{color:var(--ink)}.vbars.many .vb span{font-size:9.5px;letter-spacing:-.02em}
 .vbars.many .vb i{border-radius:4px 4px 1px 1px}
-@font-face{font-family:Manrope;src:url(manrope-400.woff2) format("woff2");font-weight:400;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-500.woff2) format("woff2");font-weight:500;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-600.woff2) format("woff2");font-weight:600;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-700.woff2) format("woff2");font-weight:700;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-800.woff2) format("woff2");font-weight:800;font-display:swap}</style>
+@font-face{font-family:Manrope;src:url(manrope-400.woff2) format("woff2");font-weight:400;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-500.woff2) format("woff2");font-weight:500;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-600.woff2) format("woff2");font-weight:600;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-700.woff2) format("woff2");font-weight:700;font-display:swap}@font-face{font-family:Manrope;src:url(manrope-800.woff2) format("woff2");font-weight:800;font-display:swap}.kb b .u{font-style:normal;font-size:13px;font-weight:600;color:var(--mute);margin-left:4px}
+.empty.e2{display:flex;flex-direction:column;align-items:center;gap:6px;padding:90px 30px}.e2 .ei{width:64px;height:64px;border-radius:20px;background:var(--goodbg);color:var(--good);display:grid;place-items:center;margin-bottom:10px}.e2 .ei svg{width:30px;height:30px}.e2 b{font:700 19px Manrope,Inter,sans-serif;color:var(--ink)}
+.tabs button{min-width:0}
+.sec h2,h2{text-transform:none!important;letter-spacing:-.005em!important;font-size:15px!important;color:var(--ink)!important}
+</style>
 </head>
 <body>
 <div id="app"><div class="boot3"><img class="bi" src="icone-dago.svg" alt="Dago Moto Shop"><div class="bw"><h1 class="bh">Bonjour,<br><span>Dago.</span></h1><div class="bbar"><i></i></div><p class="btt">Chargement de l'app…</p><p class="mute sm" id="bootmsg"></p><button class="b2 ghost full" id="bootfix" hidden>Réparer l'app (vider le cache)</button></div></div></div><div id="toasts" aria-live="polite"></div>
