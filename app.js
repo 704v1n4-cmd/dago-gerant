@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.32 · 27/11";
+const APP_VERSION="3.33 · 27/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -36,6 +36,7 @@ async function majRelay(){/* publie la dernière version de la caisse (maj/derni
  try{if(!/gerant@/.test(USER&&USER.email||""))return;const r=await fetch("maj/derniere.json?"+Date.now(),{cache:"no-store"});if(!r.ok)return;const j=await r.json();
  const cur=await FBX.get("maj/caisse");const n=v=>String(v||"0").split(".").map(Number),c=(a,b)=>{a=n(a);b=n(b);for(let i=0;i<3;i++)if((a[i]||0)!==(b[i]||0))return(a[i]||0)-(b[i]||0);return 0};
  if(cur&&cur.cle&&j.version&&j.url&&c(j.version,cur.version)>0)await FBX.set("maj/caisse",{version:j.version,url:j.url,publie:Date.now()},true)}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&USER)majRelay()});setInterval(()=>{if(USER&&!document.hidden)majRelay()},5*60000);
 if("serviceWorker"in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",render);window.addEventListener("offline",render);
 const EYE='<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
