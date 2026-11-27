@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.25 · 26/11";
+const APP_VERSION="3.26 · 27/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -72,7 +72,7 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  $$("[data-t]").forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render();$(".body").scrollTop=0});
  bind();const bd=$(".body");if(bd&&sy)bd.scrollTop=sy}
 function bar(v,max,a){return`<span class="bt ${a?"a":""}"><i style="width:${max?Math.max(2,Math.round(v*100/max)):0}%"></i></span>`}
-function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
+const CSTK="Achat de stock / paiement fournisseur",HC=/^Achat de stock|^Retraits des associ|^Dépenses camion/;function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
 function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const mx=Math.max(1,...P.map(x=>x[1]));
  return`<div class="spark" role="img" aria-label="Ventes des derniers jours">${P.map(([d,v],i)=>`<div><i class="${i===P.length-1?"on":""}" style="height:${Math.max(3,Math.round(v*44/mx))}px"></i><span>${d}</span></div>`).join("")}</div>`}
 const kbox=(k,l,v,cls,sub)=>`<button class="kb" data-sh="${k}"><span class="l">${l}</span><b class="${cls||""}">${v}${/\d$/.test(v)?'<i class="u">Ar</i>':""}</b>${sub?`<small>${sub}</small>`:""}</button>`;
@@ -149,8 +149,8 @@ function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
  ${vObjMois()}
  ${vModeles()}
  <section class="card"><div class="ct"><b>Ventes par catégorie</b></div>${hbars(m.parCat,true)||`<p class="mute pad">—</p>`}</section>
- <section class="card"><div class="ct"><b>Plus grosses sorties</b></div>${hbars(m.depCat)||`<p class="mute pad">—</p>`}
- <div class="s" style="margin-top:10px">Hors charges : achats de stock ${fmtN(m.achatsStock||0)} · retraits des associés ${fmtN(m.retraits)} · camion à refacturer ${fmtN(m.camion)}</div></section>
+ <section class="card"><div class="ct"><b>Charges de la boutique</b></div>${hbars(m.depCat.filter(([c])=>!HC.test(c)))||`<p class="mute pad">—</p>`}</section>
+ <section class="card"><div class="ct"><b>Hors charges</b><small class="mute">ne réduit pas le résultat</small></div><div class="list">${[[CSTK,m.achatsStock||0,"Payé aux fournisseurs : compté dans la marge à la vente"],["Retraits des associés",m.retraits||0,"Argent pris par les associés"],["Camion (autre entreprise)",m.camion||0,"À refacturer"]].map(([l,v,s])=>`<div class="lr"><span>${l}<small class="mute" style="display:block;font-size:12px">${s}</small></span><b>${fmtN(v)}</b></div>`).join("")}</div></section>
  <h2>Soldes</h2><section class="card list">${Object.entries(E.soldes).map(([k,v])=>`<div class="li"><span class="grow">${esc(k)}</span><b>${fmtN(v)}</b></div>`).join("")}</section>`}
 /* ---------- Caisse : soldes + opérations du gérant (transfert, dépôt, retrait banque, dépense, entrée) ---------- */
 let OPS=JSON.parse(localStorage.getItem("dg_ops")||"[]");
