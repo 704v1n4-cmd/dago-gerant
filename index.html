@@ -225,7 +225,8 @@ button.vb{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;fle
 button.hbb{display:block;width:100%;text-align:left;background:none;border:0;padding:6px 0;margin-top:4px;color:inherit;font:inherit;cursor:pointer;border-radius:10px}button.hbb:active{background:var(--line)}.hbb .t b{display:inline-flex;align-items:center;gap:2px}.hbb .t svg{width:15px;height:15px;opacity:.45}
 .pdfb{margin:0 0 12px;display:flex;align-items:center;justify-content:center;gap:8px}.pdfb svg{width:18px;height:18px}
 #printzone{display:none}
-@media print{html,body{background:#fff!important}body>*:not(#printzone){display:none!important}#printzone{display:block!important}@page{size:A4;margin:12mm}
+@media print{html,body{background:#fff!important}body>*:not(#printzone){display:none!important}#printzone{display:block!important}@page{size:A4;margin:12mm}}
+
 #printzone{font-family:Manrope,Inter,sans-serif;color:#18181b;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #printzone header{display:flex;gap:12px;align-items:center;border-bottom:3px solid #71f331;padding-bottom:10px;margin-bottom:12px}#printzone header img{width:46px;height:46px;border-radius:12px}
 #printzone h1{font-size:20px;margin:0}#printzone header p{margin:2px 0 0;color:#71717a}
@@ -234,7 +235,9 @@ button.hbb{display:block;width:100%;text-align:left;background:none;border:0;pad
 #printzone section{border:1px solid #e4e4e7;border-radius:10px;padding:8px 10px;margin-bottom:10px;break-inside:avoid}#printzone h2{font-size:12.5px;margin:0 0 6px}#printzone h2 small{font-weight:500;color:#71717a}#printzone h3{font-size:11px;margin:8px 0 2px;color:#52525b}
 #printzone .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}#printzone .two section{margin-bottom:10px}
 #printzone .r{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:2px 0;border-bottom:1px solid #f4f4f5}#printzone .r i{grid-column:1/-1;grid-row:2;height:5px;background:#f4f4f5;border-radius:4px;display:block}#printzone .r u{display:block;height:100%;border-radius:4px}#printzone .r b{grid-column:2;grid-row:1}
-#printzone .tt{font-weight:800;border-top:1px solid #d4d4d8}#printzone .rt{color:#b45309;font-style:normal;font-size:9px}#printzone footer{color:#71717a;font-size:9px;margin-top:6px}}
+#printzone .tt{font-weight:800;border-top:1px solid #d4d4d8}#printzone .rt{color:#b45309;font-style:normal;font-size:9px}#printzone footer{color:#71717a;font-size:9px;margin-top:6px}
+#printzone.gen{display:block!important;position:fixed;left:-10000px;top:0;width:760px;background:#fff;padding:24px;box-sizing:border-box}
+
 
 /* 3.28 : style verre (MagicOS) - clair = verre clair, sombre = verre fumé */
 html,body{min-height:100%}

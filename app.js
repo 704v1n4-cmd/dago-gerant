@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.34 · 27/11";
+const APP_VERSION="3.35 · 27/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -484,7 +484,17 @@ function dashPdf(){const m=E.mois,[y,mo]=m.m.split("-").map(Number),mois=new Dat
  ${mod.length?`<section><h2>Motos les plus vendues</h2>${hb(mod.map(x=>Array.isArray(x)?x:[x.modele||x.nom,x.n||x.q||0]),"#18181b")}</section>`:""}
  <footer>Chiffres de la caisse du ${new Date(E.maj).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Résultat estimé = marge sur les ventes − charges de la boutique (achats de stock, retraits des associés et camion exclus).</footer></div>`;
  let P=$("#printzone");if(!P){P=document.createElement("div");P.id="printzone";document.body.appendChild(P)}P.innerHTML=html;
- const t=document.title;document.title="Tableau de bord Dago "+m.m;setTimeout(()=>{window.print();document.title=t},300)}
+ pdfSave(P,"Tableau-de-bord-Dago-"+m.m+".pdf")}
+function loadJs(src){return new Promise((ok,ko)=>{if(document.querySelector('script[src="'+src+'"]'))return ok();const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>ko(new Error("chargement "+src));document.head.appendChild(s)})}
+async function pdfSave(P,name){toast("Préparation du PDF…",6000);
+ try{await loadJs("lib-h2c.js");await loadJs("lib-jspdf.js");P.classList.add("gen");await new Promise(r=>setTimeout(r,250));
+  const cv=await html2canvas(P,{scale:2,backgroundColor:"#ffffff",useCORS:true});P.classList.remove("gen");
+  const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:"mm",format:"a4"}),W=190,pageH=277,pxPerMm=cv.width/W,sliceH=Math.floor(pageH*pxPerMm);
+  for(let y=0,pg=0;y<cv.height;y+=sliceH,pg++){const c=document.createElement("canvas");c.width=cv.width;c.height=Math.min(sliceH,cv.height-y);c.getContext("2d").drawImage(cv,0,y,cv.width,c.height,0,0,cv.width,c.height);if(pg)pdf.addPage();pdf.addImage(c.toDataURL("image/jpeg",.92),"JPEG",10,10,W,c.height/pxPerMm)}
+  const blob=pdf.output("blob"),file=new File([blob],name,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});return}catch(e){if(e&&e.name==="AbortError")return}}
+  const u=URL.createObjectURL(blob),l=document.createElement("a");l.href=u;l.download=name;document.body.appendChild(l);l.click();setTimeout(()=>{URL.revokeObjectURL(u);l.remove()},4000);toast("PDF téléchargé : "+name,4000)}
+ catch(e){P.classList.remove("gen");toast("PDF impossible ("+(e.message||e)+") : impression proposée à la place",5000);setTimeout(()=>window.print(),400)}}
 
 async function modelDetail(nom){openSheet(nom,`<p class="mute">Chargement des ventes…</p>`);let B;try{B=await loadBK()}catch(e){openSheet(nom,`<div class="note">Détail indisponible : pas de sauvegarde en ligne lisible.</div>`);return}
  const n=normName(nom),mm=E.mois.m,O=B.ops.map(x=>x.o).filter(o=>o.type==="E"&&!o.ajustement&&(MF==="tout"||String(o.date||"").startsWith(mm))&&((o.motos||[]).some(x=>normName(x.modele||x.nom||"")===n)||normName(o.libelle).startsWith(n))).sort((x,y)=>String(y.date).localeCompare(String(x.date)));
