@@ -5,7 +5,7 @@
    Hors ligne : affiche les dernières données reçues.
    ===================================================================== */
 "use strict";
-const APP_VERSION="3.26 · 27/11";
+const APP_VERSION="3.27 · 27/11";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtN=n=>Math.round(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ");
@@ -72,7 +72,7 @@ function render(){if(!USER)return;window.DG_BOOT&&(DG_BOOT.ok=true);const sy=$("
  $$("[data-t]").forEach(b=>b.onclick=()=>{TAB=b.dataset.t;render();$(".body").scrollTop=0});
  bind();const bd=$(".body");if(bd&&sy)bd.scrollTop=sy}
 function bar(v,max,a){return`<span class="bt ${a?"a":""}"><i style="width:${max?Math.max(2,Math.round(v*100/max)):0}%"></i></span>`}
-const CSTK="Achat de stock / paiement fournisseur",HC=/^Achat de stock|^Retraits des associ|^Dépenses camion/;function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="hb"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}</b></div>${bar(v,mx,a)}</div>`).join("")}
+const CSTK="Achat de stock / paiement fournisseur",HC=/^Achat de stock|^Retraits des associ|^Dépenses camion/;function hbars(L,a){const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<button class="hb hbb" data-cat="${esc(c)}" data-ck="${a?"v":"s"}" aria-label="Détail : ${esc(c)}"><div class="t"><span>${esc(c)}</span><b>${fmtN(v)}${ic(CHV)}</b></div>${bar(v,mx,a)}</button>`).join("")}
 function spark(){const P=E.mois.parJour.slice(-7);if(P.length<2)return"";const mx=Math.max(1,...P.map(x=>x[1]));
  return`<div class="spark" role="img" aria-label="Ventes des derniers jours">${P.map(([d,v],i)=>`<div><i class="${i===P.length-1?"on":""}" style="height:${Math.max(3,Math.round(v*44/mx))}px"></i><span>${d}</span></div>`).join("")}</div>`}
 const kbox=(k,l,v,cls,sub)=>`<button class="kb" data-sh="${k}"><span class="l">${l}</span><b class="${cls||""}">${v}${/\d$/.test(v)?'<i class="u">Ar</i>':""}</b>${sub?`<small>${sub}</small>`:""}</button>`;
@@ -140,7 +140,7 @@ function cumul(){/* courbe du cumul des ventes du mois face à l'objectif (répa
  <text x="0" y="${Hh+16}" class="ctx">1</text><text x="${X(15)}" y="${Hh+16}" text-anchor="middle" class="ctx">15</text><text x="${W}" y="${Hh+16}" text-anchor="end" class="ctx">${nd}</text></svg>
  <div class="leg2"><span><i class="la"></i>Ventes cumulées · ${fmtN(c)}</span><span><i class="lt"></i>Rythme objectif</span></div></section>`}
 function vMois(){const m=E.mois,maxJ=Math.max(1,...m.parJour.map(x=>x[1]));
- return`<section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
+ return`<button class="b2 ghost full pdfb" id="pdfm">${ic('<path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/>')}Télécharger le tableau de bord (PDF)</button><section class="card" aria-label="Résultat du mois"><div class="ht"><button class="tap in2" data-sh="mres"><div class="l2">Résultat estimé</div><div class="big">${m.marge==null?"—":fmtN(m.marge-m.charges)} <small>Ar</small></div></button>${tag(m.motos+" moto"+(m.motos>1?"s":""),"g")}</div>
  <div class="c3"><button data-sh="mca"><small>Chiffre d'affaires</small><b>${fmtN(m.ca)}</b></button><button data-sh="mmarge"><small>Marge</small><b>${m.marge==null?"—":fmtN(m.marge)}</b></button><button data-sh="mcharges"><small>Charges</small><b>${fmtN(m.charges)}</b></button></div>
  ${m.couv?`<div class="s" style="margin-top:8px">Coût d'achat connu pour ${m.couv} % des ventes.</div>`:""}${m.anciennes?`<div class="s" style="margin-top:4px">Hors anciennes dettes : ${fmtN(m.anciennes)} Ar.</div>`:""}${m.achatsStock?`<div class="s" style="margin-top:4px">Achats de stock payés ce mois : ${fmtN(m.achatsStock)} Ar (sortie d'argent, pas une charge).</div>`:""}</section>
  
@@ -424,7 +424,7 @@ async function openSearch(){openSheet("Rechercher",`<label class="fl" style="mar
  try{await loadBK();if(!$("#sinfo"))return;const old=Date.now()-BK.ts>30*60000;$("#sinfo").innerHTML=`Données de la caisse du ${new Date(BK.ts).toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à ${new Date(BK.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}${old?` · <span class="amb">pas tout à fait à jour</span>`:""} · <button class="lk" id="srl" style="padding:0;margin:0;font-size:12px">actualiser</button>`;
   $("#srl").onclick=async()=>{$("#srl").textContent="…";try{await loadBK(true)}catch(e){}closeSheet();openSearch()};go()}
  catch(e){if($("#sinfo"))$("#sinfo").innerHTML=`<span class="red">${navigator.onLine?"Aucune sauvegarde en ligne trouvée : la caisse du PC doit être connectée au moins une fois.":"Pas d'internet : la recherche a besoin d'une connexion."}</span>`}}
-function bind(){$$("[data-xop]").forEach(b=>b.onclick=async()=>{const o=OPS.find(x=>x.cid===b.dataset.xop);if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? La caisse l'enregistrera comme annulée, avec votre motif.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;await sendCmd({type:"annulation",id:"o_t"+o.cid,motif:r===true?"":r});o.annule=true;localStorage.setItem("dg_ops",JSON.stringify(OPS));render();toast(navigator.onLine?"Annulation envoyée à la caisse":"Annulation enregistrée : elle partira au retour du réseau",3500)});if(TAB==="dettes"&&DF==="payees")fillPayees();$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
+function bind(){$$("[data-cat]").forEach(b=>b.onclick=()=>catDetail(b.dataset.cat,b.dataset.ck));const pd=$("#pdfm");if(pd)pd.onclick=dashPdf;$$("[data-xop]").forEach(b=>b.onclick=async()=>{const o=OPS.find(x=>x.cid===b.dataset.xop);if(!o)return;const r=await ask("Annuler « "+o.lib+" » ("+fmtN(o.m)+" Ar) ? La caisse l'enregistrera comme annulée, avec votre motif.","Annuler l'opération","Motif de l'annulation (obligatoire)");if(!r)return;await sendCmd({type:"annulation",id:"o_t"+o.cid,motif:r===true?"":r});o.annule=true;localStorage.setItem("dg_ops",JSON.stringify(OPS));render();toast(navigator.onLine?"Annulation envoyée à la caisse":"Annulation enregistrée : elle partira au retour du réseau",3500)});if(TAB==="dettes"&&DF==="payees")fillPayees();$$("[data-day]").forEach(b=>b.onclick=()=>dayDetail(b.dataset.day));$$("[data-op]").forEach(b=>b.onclick=()=>opForm(b.dataset.op));$$("[data-go]").forEach(b=>b.onclick=()=>{TAB=b.dataset.go;render()});
  $$("[data-acc]").forEach(b=>b.onclick=()=>decide(b.dataset.acc,"accepte"));$$("[data-ref]").forEach(b=>b.onclick=()=>decide(b.dataset.ref,"refuse"));
  const s=$("#sendm");if(s)s.onclick=async()=>{const t=$("#msg").value.trim();if(t.length<2)return;await sendCmd({type:"message",texte:t});$("#msg").value="";toast(navigator.onLine?"Message envoyé":"Message enregistré : envoyé dès le retour du réseau")};
  $$("#app [data-sh]").forEach(b=>b.onclick=()=>showSheet(b.dataset.sh));$$("#app [data-tk]").forEach(b=>b.onclick=()=>showTicket(b.dataset.tk));
@@ -447,3 +447,40 @@ function sendCmd(c){const id=Date.now().toString(36)+Math.random().toString(36).
  return Promise.race([p,new Promise(r=>setTimeout(r,4000))]).catch(e=>toast("Envoi impossible : "+(e.message||e),4000)).then(()=>id)}
 /* nettoyage : oublie les décisions envoyées qui ne sont plus en attente */
 setInterval(()=>{if(!E)return;const keep=new Set(E.validations.map(v=>v.cle));let ch=false;Object.keys(SENT).forEach(k=>{if(!keep.has(k)){delete SENT[k];ch=true}});if(ch)localStorage.setItem("dg_sent",JSON.stringify(SENT))},60000);
+
+/* ---------- 3.27 : détail d'une catégorie du mois ---------- */
+const CHV='<path d="m9 6 6 6-6 6"/>';
+async function catDetail(cat,k){const T=cat;openSheet(T,`<p class="mute">Chargement du détail…</p>`);
+ let B;try{B=await loadBK()}catch(e){openSheet(T,`<div class="note">Détail indisponible : pas de sauvegarde en ligne lisible.</div>`);return}
+ const mm=E.mois.m,base=B.ops.map(x=>x.o).filter(o=>String(o.date||"").startsWith(mm)&&!o.annule&&!o.ajustement);
+ const cr=cat==="Vente à crédit",O=base.filter(o=>k==="v"?(o.type==="E"&&(!cr&&o.cat===cat)):(o.type==="S"&&(o.cat===cat||(/^Achat de stock/.test(cat)&&/^Achat de stock/.test(o.cat||""))))).sort((x,y)=>String(y.date).localeCompare(String(x.date))||(y.ts||0)-(x.ts||0));
+ const tot=O.reduce((t,o)=>t+(+o.montant||0),0);
+ const A={};if(k==="v")O.forEach(o=>{const n=(o.article&&o.article.nom)||o.libelle||"—",q=+(o.article&&o.article.qte)||(o.motos||[]).length||1;(A[n]=A[n]||{q:0,m:0}).q+=q;A[n].m+=+o.montant||0});
+ const AL=Object.entries(A).sort((x,y)=>y[1].m-x[1].m);
+ openSheet(T,`<div class="kg"><div class="kb"><span class="l">Total du mois</span><b class="${k==="s"?"red":""}">${fmtN(tot)}</b><small>${O.length} opération(s)</small></div>${k==="v"?`<div class="kb"><span class="l">Articles différents</span><b>${AL.length}</b><small>${AL.reduce((t,x)=>t+x[1].q,0)} unité(s)</small></div>`:""}</div>
+ ${k==="v"&&AL.length?`<h3 class="h3s">Articles vendus</h3><div class="card list">${AL.slice(0,40).map(([n,x])=>`<div class="lr"><span>${esc(n)}<small class="mute" style="display:block;font-size:12.5px">${x.q} unité(s)</small></span><b>${fmtN(x.m)}</b></div>`).join("")}</div>`:""}
+ <h3 class="h3s">Opérations</h3><div class="card list">${O.slice(0,150).map(o=>`<button class="lr" data-eop="${esc(o.id)}"><span>${esc(o.libelle)}<small class="mute" style="display:block;font-size:12.5px">${fd(o.date)} · ${esc(o.mode||"")}${o.tiers?" · "+esc(o.tiers):""}</small></span><b class="${o.type==="S"?"red":""}">${o.type==="S"?"−":""}${fmtN(o.montant)}</b>${ic(PEN)}</button>`).join("")||`<p class="mute pad">${cr?"Les ventes à crédit sont suivies dans l'onglet Dettes.":"Aucune opération trouvée dans la sauvegarde."}</p>`}</div>
+ <p class="s">D'après la sauvegarde en ligne de ${new Date(B.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}. Touchez une ligne pour la modifier ou l'annuler.</p>`);
+ const byId=Object.fromEntries(O.map(o=>[o.id,o]));$$("[data-eop]").forEach(b=>b.onclick=()=>{const o=byId[b.dataset.eop];if(o)editOp({id:o.id,lib:o.libelle,m:+o.montant,mode:o.mode,cat:o.cat,tiers:o.tiers||"",obs:o.obs||"",type:o.type})})}
+/* ---------- 3.27 : tableau de bord du mois en PDF (impression du navigateur → Enregistrer en PDF) ---------- */
+function dashPdf(){const m=E.mois,[y,mo]=m.m.split("-").map(Number),mois=new Date(y,mo-1,15).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}),O=objMois?objMois():{};
+ const N=v=>fmtN(Math.round(+v||0)),res=m.marge==null?null:m.marge-m.charges;
+ const HC=/^Achat de stock|^Retraits des associ|^Dépenses camion/,ch=m.depCat.filter(([c])=>!HC.test(c));
+ const hb=(L,col)=>{const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([c,v])=>`<div class="r"><span>${esc(c)}</span><i><u style="width:${Math.max(1,v*100/mx)}%;background:${col}"></u></i><b>${N(v)}</b></div>`).join("")};
+ const PJ=m.parJour,mxJ=Math.max(1,...PJ.map(x=>x[1])),W=680,H=170,bw=W/Math.max(PJ.length,1);
+ const jours=`<svg viewBox="0 0 ${W} ${H+34}" width="100%">${PJ.map(([d,v],i)=>{const h=Math.max(1,v/mxJ*H);return`<rect x="${i*bw+bw*.15}" y="${H-h+16}" width="${bw*.7}" height="${h}" rx="3" fill="#18181b"/><text x="${i*bw+bw/2}" y="${H-h+12}" font-size="9" text-anchor="middle" fill="#3f3f46">${(v/1e6).toFixed(1).replace(".",",")}</text><text x="${i*bw+bw/2}" y="${H+30}" font-size="9" text-anchor="middle" fill="#71717a">${d}</text>`}).join("")}</svg>`;
+ const nd=new Date(y,mo,0).getDate();let c=0;const pts=PJ.map(([d,v])=>{c+=v;return[+d,c]}),mxC=Math.max(c,O.ca||0,1);
+ const cum=`<svg viewBox="0 0 ${W} ${H+24}" width="100%"><line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="#d4d4d8"/>${O.ca?`<line x1="0" y1="${H}" x2="${W}" y2="${H-O.ca/mxC*H}" stroke="#a1a1aa" stroke-dasharray="5 5"/><text x="${W-4}" y="${H-O.ca/mxC*H-6}" font-size="10" text-anchor="end" fill="#71717a">Objectif ${N(O.ca)}</text>`:""}<polyline fill="none" stroke="#3fa30f" stroke-width="3" points="0,${H} ${pts.map(([d,v])=>`${d/nd*W},${H-v/mxC*H}`).join(" ")}"/><text x="0" y="${H+18}" font-size="10" fill="#71717a">1</text><text x="${W}" y="${H+18}" font-size="10" text-anchor="end" fill="#71717a">${nd}</text></svg>`;
+ const D=(E.dettes&&E.dettes.liste||[]).slice().sort((a,b)=>b.reste-a.reste),S=Object.entries(E.soldes||{});
+ const mod=(m.modeles||[]).slice(0,8);
+ const k=(l,v,s)=>`<div class="k"><small>${l}</small><b>${v}</b>${s?`<em>${s}</em>`:""}</div>`;
+ const html=`<div class="pg"><header><img src="icon-192.png" alt=""><div><h1>Tableau de bord · ${mois.replace(/^./,x=>x.toUpperCase())}</h1><p>Dago Moto Shop · édité le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</p></div></header>
+ <div class="ks">${k("Résultat estimé",res==null?"—":N(res)+" Ar","marge − charges")}${k("Chiffre d'affaires",N(m.ca)+" Ar",O.ca?Math.round(m.ca*100/O.ca)+" % de l'objectif "+N(O.ca):"")}${k("Marge",m.marge==null?"—":N(m.marge)+" Ar",m.couv?"coût connu pour "+m.couv+" % des ventes":"")}${k("Charges",N(m.charges)+" Ar","")}${k("Motos vendues",m.motos,O.motos?"objectif "+O.motos:"")}</div>
+ <section><h2>Cumul des ventes</h2>${cum}</section><section><h2>Ventes par jour <small>(millions d'Ar)</small></h2>${jours}</section>
+ <div class="two"><section><h2>Ventes par catégorie</h2>${hb(m.parCat,"#3fa30f")}</section><section><h2>Charges de la boutique</h2>${hb(ch,"#52525b")}<h3>Hors charges</h3><div class="r"><span>Achat de stock / paiement fournisseur</span><b>${N(m.achatsStock)}</b></div><div class="r"><span>Retraits des associés</span><b>${N(m.retraits)}</b></div><div class="r"><span>Camion (autre entreprise)</span><b>${N(m.camion)}</b></div></section></div>
+ <div class="two"><section><h2>Soldes</h2>${S.map(([n,v])=>`<div class="r"><span>${esc(n)}</span><b>${N(v)}</b></div>`).join("")}<div class="r tt"><span>Total</span><b>${N(S.reduce((t,x)=>t+x[1],0))}</b></div></section>
+ <section><h2>Dettes clients <small>${E.dettes?N(E.dettes.total)+" Ar · "+E.dettes.n+" client(s)":""}</small></h2>${D.slice(0,10).map(x=>`<div class="r"><span>${esc(x.tiers)}${x.retard?' <em class="rt">en retard</em>':""}</span><b>${N(x.reste)}</b></div>`).join("")}</section></div>
+ ${mod.length?`<section><h2>Motos les plus vendues</h2>${hb(mod.map(x=>Array.isArray(x)?x:[x.modele||x.nom,x.n||x.q||0]),"#18181b")}</section>`:""}
+ <footer>Chiffres de la caisse du ${new Date(E.maj).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}. Résultat estimé = marge sur les ventes − charges de la boutique (achats de stock, retraits des associés et camion exclus).</footer></div>`;
+ let P=$("#printzone");if(!P){P=document.createElement("div");P.id="printzone";document.body.appendChild(P)}P.innerHTML=html;
+ const t=document.title;document.title="Tableau de bord Dago "+m.m;setTimeout(()=>{window.print();document.title=t},300)}
