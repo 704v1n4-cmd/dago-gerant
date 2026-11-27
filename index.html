@@ -235,6 +235,20 @@ button.hbb{display:block;width:100%;text-align:left;background:none;border:0;pad
 #printzone .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}#printzone .two section{margin-bottom:10px}
 #printzone .r{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:2px 0;border-bottom:1px solid #f4f4f5}#printzone .r i{grid-column:1/-1;grid-row:2;height:5px;background:#f4f4f5;border-radius:4px;display:block}#printzone .r u{display:block;height:100%;border-radius:4px}#printzone .r b{grid-column:2;grid-row:1}
 #printzone .tt{font-weight:800;border-top:1px solid #d4d4d8}#printzone .rt{color:#b45309;font-style:normal;font-size:9px}#printzone footer{color:#71717a;font-size:9px;margin-top:6px}}
+
+/* 3.28 : style verre (MagicOS) - clair = verre clair, sombre = verre fumé */
+html,body{min-height:100%}
+body{background:radial-gradient(circle at 15% 0%,rgba(61,122,18,.55) 0,transparent 42%),radial-gradient(circle at 95% 45%,rgba(31,77,58,.55) 0,transparent 45%),radial-gradient(circle at 30% 100%,rgba(42,90,16,.45) 0,transparent 45%),#0b0d0a!important;background-attachment:fixed!important}
+[data-theme=light] body{background:radial-gradient(circle at 15% 0%,#c6f59c 0,transparent 45%),radial-gradient(circle at 95% 40%,#b7e4d6 0,transparent 45%),radial-gradient(circle at 30% 100%,#e6f7d0 0,transparent 50%),#eef2ea!important;background-attachment:fixed!important}
+.card,.kb,.sheet,.mh,.tabs,.note{background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.14)!important;-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:0 8px 24px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.08)}
+[data-theme=light] .card,[data-theme=light] .kb,[data-theme=light] .mh,[data-theme=light] .tabs,[data-theme=light] .note{background:rgba(255,255,255,.58)!important;border-color:rgba(255,255,255,.85)!important;box-shadow:0 8px 24px rgba(20,40,10,.07),inset 0 1px 0 rgba(255,255,255,.7)}
+.sheet{background:rgba(24,26,22,.88)!important}[data-theme=light] .sheet{background:rgba(250,252,248,.92)!important;border-color:#fff!important}
+.card,.kb{border-radius:22px!important}
+.tabs{position:fixed!important;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 10px);border:1px solid;border-radius:26px;padding:6px 4px!important;z-index:30}
+main,.wrap,#app>section,.pg{padding-bottom:110px}
+.mh{border-radius:0 0 22px 22px;border-top:0!important}
+[data-theme=light] .hero:not(.g4){background:rgba(24,26,22,.82)!important;border-color:rgba(255,255,255,.2)!important}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.card,.kb,.tabs,.mh{background:var(--card)!important}}
 </style>
 </head>
 <body>
